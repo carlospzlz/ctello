@@ -66,7 +66,7 @@ void Tello::info()
     SendCommand("wifi?");
     if (auto response = ReceiveResponse())
     {
-        std::cout << "WIFI Signal:\t" << *response << std::endl;
+        std::cout << "Wi-Fi Signal:\t" << *response << std::endl;
     }
     SendCommand("battery?");
     if (auto response = ReceiveResponse())
