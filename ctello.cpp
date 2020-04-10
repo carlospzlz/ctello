@@ -121,6 +121,11 @@ Tello::Tello()
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 }
 
+Tello::~Tello()
+{
+    close(m_sockfd);
+}
+
 bool Tello::Bind()
 {
     auto result = ::BindSocketToPort(m_sockfd, FROM_PORT);

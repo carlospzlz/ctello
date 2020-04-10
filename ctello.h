@@ -16,6 +16,7 @@ class Tello
 {
 public:
     Tello();
+    ~Tello();
     bool Bind();
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
