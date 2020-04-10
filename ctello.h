@@ -31,6 +31,9 @@ public:
     std::optional<std::string> ReceiveResponse();
 
 private:
+    void info();
+
+private:
     int m_sockfd{0};
     sockaddr_storage m_dest_addr{};
 };
