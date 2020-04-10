@@ -1,5 +1,3 @@
-
-
 #include "ctello.h"
 
 using ctello::Tello;
