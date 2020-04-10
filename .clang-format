@@ -1,0 +1,37 @@
+---
+Language:                Cpp
+BasedOnStyle:            Chromium
+BreakBeforeBraces:       Allman # Always break before braces.
+PointerAlignment:        Left   # "int& count", "char* str", etc.
+DerivePointerAlignment:  false  # Otherwise it may do things like "int &count",
+                                # depending on the rest of the file.
+
+AccessModifierOffset:    -4
+ContinuationIndentWidth:  4
+IndentCaseLabels:         false
+IndentWidth:              4
+SortIncludes:             true
+
+IncludeCategories:
+ # Badly behaved libraries that need to come first.
+ - Regex:           '^<(Python\.h|[wW]indows\.h)>'
+   Priority:        -1
+
+ # C system headers
+ - Regex:           '^<((sys|arpa|netinet|net)/)?[a-zA-Z0-9_]+\.h>'
+   Priority:        1
+
+ # C++ system headers
+ - Regex:           '^<((tr1|experimental)/)?[a-zA-Z0-9_]+>'
+   Priority:        2
+
+ # Third-party system headers
+ - Regex:           '^<(boost|gtest)/'
+   Priority:        3
+
+ # Sort '<' includes before '"' includes.
+ - Regex:           '^<'
+   Priority:        4
+
+IncludeIsMainRegex: '(Test)?$'
+...
