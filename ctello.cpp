@@ -12,6 +12,7 @@ bool Tello::Bind()
     // Bind socket to a port
     // Empty initiliazed sets sin_port to 0, which picks a random port.
     sockaddr_in listen_addr{};
+    listen_addr.sin_port = 9000;
     listen_addr.sin_family = AF_INET;
     int result = bind(m_sockfd, reinterpret_cast<sockaddr*>(&listen_addr),
                       sizeof(listen_addr));
@@ -45,5 +46,15 @@ bool Tello::SendCommand(const std::string& command)
         sendto(m_sockfd, command.c_str(), command.size(), 0,
                reinterpret_cast<sockaddr*>(&m_dest_addr), sizeof(m_dest_addr));
     return result != -1;
+}
+
+std::pair<bool, std::string> Tello::ReceiveResponse()
+{
+    const size_t buffer_size{9999};
+    char buffer[buffer_size];
+    socklen_t addr_len{sizeof(m_dest_addr)};
+    int result = recvfrom(m_sockfd, buffer, buffer_size, 0,
+                          reinterpret_cast<sockaddr*>(&m_dest_addr), &addr_len);
+    return {result != -1, buffer};
 }
 }  // namespace ctello

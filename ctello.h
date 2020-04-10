@@ -26,7 +26,7 @@ public:
     Tello();
     bool Bind();
     bool SendCommand(const std::string& command);
-    bool ReceiveResponse() { return false; }
+    std::pair<bool, std::string> ReceiveResponse();
     // WaitForCommand() {}
 
 private:
