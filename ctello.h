@@ -11,12 +11,14 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <optional>
 
 // TODO
 // Use spdlog
 
 const char* const IP{"192.168.10.1"};
-const char* const PORT{"8889"};
+const char* const TO_PORT{"8889"};
+const in_port_t FROM_PORT{9000};
 
 namespace ctello
 {
@@ -26,8 +28,7 @@ public:
     Tello();
     bool Bind();
     bool SendCommand(const std::string& command);
-    std::pair<bool, std::string> ReceiveResponse();
-    // WaitForCommand() {}
+    std::optional<std::string> ReceiveResponse();
 
 private:
     int m_sockfd{0};

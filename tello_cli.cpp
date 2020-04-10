@@ -2,32 +2,40 @@
 
 using ctello::Tello;
 
+const char* const PROMPT = "ctello> ";
+
+void ShowHelp()
+{
+
+}
+
 int main()
 {
     Tello tello{};
     tello.Bind();
 
-    tello.SendCommand("command");
-    auto response = tello.ReceiveResponse();
-    std::cout << "received" << std::endl;
-    if (response.first)
+    std::string command{""};
+    std::cout << PROMPT << std::flush;
+    while (std::getline(std::cin, command))
     {
-        std::cout << "Response: " << std::endl;
-        std::cout << response.second << std::endl;
+        if (command == "exit")
+        {
+            return 0;
+        }
+        if (command == "help")
+        {
+            ShowHelp();
+        }
+        else if (command.size() > 0)
+        {
+            std::cout << "tello" << std::endl;
+            tello.SendCommand(command);
+            if (auto response = tello.ReceiveResponse())
+            {
+                std::cout << *response << std::endl;
+            }
+        }
+        std::cout << PROMPT << std::flush;
     }
-    /*
-    tello.SendCommand("takeoff");
-    sleep(3);
-    tello.SendCommand("flip b");
-    sleep(3);
-    tello.SendCommand("flip f");
-    sleep(3);
-    tello.SendCommand("flip l");
-    sleep(3);
-    tello.SendCommand("flip r");
-    sleep(3);
-    tello.SendCommand("land");
-    */
-
     return 0;
 }
