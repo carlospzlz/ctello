@@ -1,8 +1,11 @@
+
+
 #include "ctello.h"
 
 using ctello::Tello;
 
 const char* const PROMPT = "ctello> ";
+// clang-format off
 const char* const HELP =
 "The Tello SDK includes three basic command types.\n"
 "\n"
@@ -54,6 +57,7 @@ const char* const HELP =
 "  sdk?          Obtain the Tello SDK version                     version   \n"
 "  sn?           Obtain the Tello serial number                   serial    \n"
 "\n";
+// clang-format on
 
 int main()
 {

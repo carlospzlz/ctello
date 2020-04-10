@@ -1,6 +1,19 @@
 #include "ctello.h"
 
+#include <arpa/inet.h>
+#include <errno.h>
+#include <ifaddrs.h>
+#include <memory.h>
+#include <net/if.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <stdlib.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <sstream>
+#include <iostream>
 
 namespace
 {
