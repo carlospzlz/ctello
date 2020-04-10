@@ -18,7 +18,7 @@
 
 const char* const IP{"192.168.10.1"};
 const char* const TO_PORT{"8889"};
-const in_port_t FROM_PORT{9000};
+const int FROM_PORT{9000};
 
 namespace ctello
 {
@@ -31,7 +31,8 @@ public:
     std::optional<std::string> ReceiveResponse();
 
 private:
-    void info();
+    void FindTello();
+    void ShowTelloInfo();
 
 private:
     int m_sockfd{0};
