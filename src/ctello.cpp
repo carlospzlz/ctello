@@ -30,11 +30,38 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <iostream>
 #include <sstream>
+
+#include "spdlog/spdlog.h"
+
+const char* const LOG_PATTERN = "[%D %T] [ctello] [%^%l%$] %v";
 
 namespace
 {
+// Reads the spdlog level from given environment variable name.
+spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
+{
+    // clang-format off
+    std::unordered_map<std::string, spdlog::level::level_enum> name_to_enum = {
+        {"trace", spdlog::level::trace},
+        {"debug", spdlog::level::debug},
+        {"info", spdlog::level::info},
+        {"warn", spdlog::level::warn},
+        {"error", spdlog::level::err},
+        {"critical", spdlog::level::critical},
+        {"off", spdlog::level::off}
+    };
+    // clang-format on
+    const char* const name_c_str = std::getenv(var_name.c_str());
+    if (name_c_str == nullptr)
+    {
+        // Info is default
+        return spdlog::level::info;
+    }
+    const std::string name{name_c_str};
+    return name_to_enum[name];
+}
+
 // Binds the given socket file descriptor ot the given port.
 // Returns whether it suceeds or not and the error message.
 std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
@@ -136,6 +163,9 @@ namespace ctello
 Tello::Tello()
 {
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    spdlog::set_pattern(LOG_PATTERN);
+    auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
+    spdlog::set_level(log_level);
 }
 
 Tello::~Tello()
@@ -148,20 +178,20 @@ bool Tello::Bind()
     auto result = ::BindSocketToPort(m_sockfd, FROM_PORT);
     if (!result.first)
     {
-        std::cout << "CTello Error: " << result.second << std::endl;
+        spdlog::error(result.second);
         return false;
     }
 
     result = ::FindDestinationAddr(IP, TO_PORT, &m_dest_addr);
     if (!result.first)
     {
-        std::cout << "CTello Error: " << result.second << std::endl;
+        spdlog::error(result.second);
         return false;
     }
 
-    std::cout << "Finding Tello ..." << std::endl;
+    spdlog::info("Finding Tello ...");
     FindTello();
-    std::cout << "Entered SDK mode" << std::endl;
+    spdlog::info("Entered SDK mode");
 
     ShowTelloInfo();
 
@@ -184,22 +214,22 @@ void Tello::ShowTelloInfo()
     SendCommand("sn?");
     while (!(response = ReceiveResponse()))
         ;
-    std::cout << "Serial Number:\t" << *response << std::endl;
+    spdlog::info("Serial Number: {0}", *response);
 
     SendCommand("sdk?");
     while (!(response = ReceiveResponse()))
         ;
-    std::cout << "Tello SDK:\t" << *response << std::endl;
+    spdlog::info("Tello SDK:     {0}", *response);
 
     SendCommand("wifi?");
     while (!(response = ReceiveResponse()))
         ;
-    std::cout << "Wi-Fi Signal:\t" << *response << std::endl;
+    spdlog::info("Wi-Fi Signal:  {0}", *response);
 
     SendCommand("battery?");
     while (!(response = ReceiveResponse()))
         ;
-    std::cout << "Battery:\t" << *response << std::endl;
+    spdlog::info("Battery:       {0}", *response);
 }
 
 bool Tello::SendCommand(const std::string& command)
@@ -207,9 +237,10 @@ bool Tello::SendCommand(const std::string& command)
     auto result = ::SendTo(m_sockfd, m_dest_addr, command);
     if (result.first == -1)
     {
-        std::cout << "CTello Error: " << result.second << std::endl;
+        spdlog::error(result.second);
         return false;
     }
+    spdlog::debug("Sent command to {0}:{1}: {2}", IP, TO_PORT, command);
     return true;
 }
 
@@ -219,7 +250,7 @@ std::optional<std::string> Tello::ReceiveResponse()
     auto result = ::ReceiveFrom(m_sockfd, m_dest_addr, response);
     if (result.first == -1)
     {
-        std::cout << "CTello Error: " << result.second << std::endl;
+        spdlog::error(result.second);
         return {};
     }
     if (result.first == 0)
@@ -227,6 +258,7 @@ std::optional<std::string> Tello::ReceiveResponse()
         return {};
     }
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
+    spdlog::debug("Received response from {0}:{1}: {2}", IP, TO_PORT, response);
     return response;
 }
 }  // namespace ctello
