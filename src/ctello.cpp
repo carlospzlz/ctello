@@ -38,7 +38,7 @@ const char* const LOG_PATTERN = "[%D %T] [ctello] [%^%l%$] %v";
 
 namespace
 {
-// Reads the spdlog level from given environment variable name.
+// Reads the spdlog level from the given environment variable name.
 spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
 {
     // clang-format off
@@ -55,7 +55,7 @@ spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
     const char* const name_c_str = std::getenv(var_name.c_str());
     if (name_c_str == nullptr)
     {
-        // Info is default
+        // Info is the default
         return spdlog::level::info;
     }
     const std::string name{name_c_str};
