@@ -125,10 +125,10 @@ std::pair<int, std::string> SendTo(const int sockfd,
         std::stringstream ss;
         ss << "sendto: " << errno;
         ss << " (" << strerror(errno) << ")";
-        return {false, ss.str()};
+        return {-1, ss.str()};
     }
 
-    return {true, ""};
+    return {result, ""};
 }
 
 // Receives a text response from the given destination address.
@@ -149,12 +149,12 @@ std::pair<int, std::string> ReceiveFrom(const int sockfd,
         std::stringstream ss;
         ss << "recvfrom: " << errno;
         ss << " (" << strerror(errno) << ")";
-        return {false, ss.str()};
+        return {-1, ss.str()};
     }
 
     response = buffer;
 
-    return {true, ""};
+    return {result, ""};
 }
 }  // namespace
 
@@ -235,12 +235,13 @@ void Tello::ShowTelloInfo()
 bool Tello::SendCommand(const std::string& command)
 {
     auto result = ::SendTo(m_sockfd, m_dest_addr, command);
-    if (result.first == -1)
+    const int bytes{result.first};
+    if (bytes == -1)
     {
         spdlog::error(result.second);
         return false;
     }
-    spdlog::debug("Sent command to {0}:{1}: {2}", IP, TO_PORT, command);
+    spdlog::debug("Sent {} bytes to {}:{}: {}", bytes, IP, TO_PORT, command);
     return true;
 }
 
@@ -248,17 +249,14 @@ std::optional<std::string> Tello::ReceiveResponse()
 {
     std::string response;
     auto result = ::ReceiveFrom(m_sockfd, m_dest_addr, response);
-    if (result.first == -1)
-    {
-        spdlog::error(result.second);
-        return {};
-    }
-    if (result.first == 0)
+    const int bytes{result.first};
+    if (bytes < 1)
     {
         return {};
     }
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
-    spdlog::debug("Received response from {0}:{1}: {2}", IP, TO_PORT, response);
+    spdlog::debug("Received {} bytes from {}:{}: {}", bytes, IP, TO_PORT,
+                  response);
     return response;
 }
 }  // namespace ctello
