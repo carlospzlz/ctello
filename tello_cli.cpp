@@ -1,4 +1,6 @@
 #include <iostream>
+#include <thread>
+#include <mutex>
 
 #include "ctello.h"
 
@@ -59,6 +61,32 @@ const char* const HELP =
 "\n";
 // clang-format on
 
+std::mutex mu;
+
+class Listener
+{
+public:
+    Listener(Tello& tello) : m_tello(tello) {}
+    void Exit() { m_listening = false; std::cout << "set" << std::endl;}
+    void operator()()
+    {
+        while (m_listening)
+        {
+            if (auto response = m_tello.ReceiveResponse())
+            {
+                mu.lock();
+                std::cout << std::endl << *response << std::endl;
+                mu.unlock();
+            }
+        }
+        std::cout << "out" << std::endl;
+    }
+
+private:
+    Tello& m_tello;
+    bool m_listening{true};
+};
+
 int main()
 {
     Tello tello{};
@@ -67,13 +95,16 @@ int main()
         return 0;
     }
 
+    Listener listener{tello};
+    std::thread listeningThread(listener);
+
     std::string command{""};
     std::cout << PROMPT << std::flush;
     while (std::getline(std::cin, command))
     {
         if (command == "exit")
         {
-            return 0;
+            break;
         }
         if (command == "help")
         {
@@ -82,12 +113,13 @@ int main()
         else if (command.size() > 0)
         {
             tello.SendCommand(command);
-            if (auto response = tello.ReceiveResponse())
-            {
-                std::cout << *response << std::endl;
-            }
         }
+        mu.lock();
         std::cout << PROMPT << std::flush;
+        mu.unlock();
     }
+
+    std::terminate(listeningThread);
+
     return 0;
 }

@@ -20,6 +20,7 @@ public:
     bool Bind();
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
+    // TODO remove methods
 
 private:
     void FindTello();
