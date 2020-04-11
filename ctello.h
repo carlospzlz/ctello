@@ -20,7 +20,11 @@ public:
     bool Bind();
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
-    // TODO remove methods
+
+    Tello(const Tello&) = delete;
+    Tello(const Tello&&) = delete;
+    Tello& operator=(const Tello&) = delete;
+    Tello& operator=(const Tello&&) = delete;
 
 private:
     void FindTello();
