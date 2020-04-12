@@ -20,13 +20,13 @@ install(FILES include/ctello.h DESTINATION include)
 
 # CTello Command ==============================================================
 
-add_executable(ctello-cli src/ctello_cli.cpp)
+add_executable(ctello-command src/ctello_command.cpp)
 
-target_include_directories(ctello-cli PRIVATE include)
+target_include_directories(ctello-command PRIVATE include)
 
-target_link_libraries(ctello-cli ctello)
+target_link_libraries(ctello-command ctello)
 
-install(TARGETS ctello-cli DESTINATION bin)
+install(TARGETS ctello-command DESTINATION bin)
 
 # CTello Status ===============================================================
 
