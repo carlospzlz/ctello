@@ -18,7 +18,7 @@ target_link_libraries(ctello PRIVATE spdlog::spdlog)
 install(TARGETS ctello DESTINATION lib)
 install(FILES include/ctello.h DESTINATION include)
 
-# CTello CLI ==================================================================
+# CTello Command ==============================================================
 
 add_executable(ctello-cli src/ctello_cli.cpp)
 
@@ -28,12 +28,22 @@ target_link_libraries(ctello-cli ctello)
 
 install(TARGETS ctello-cli DESTINATION bin)
 
-# CTello View =================================================================
+# CTello Status ===============================================================
 
-add_executable(ctello-view src/ctello_view.cpp)
+add_executable(ctello-view src/ctello_status.cpp)
 
-target_include_directories(ctello-view PRIVATE include)
+target_include_directories(ctello-status PRIVATE include)
 
-target_link_libraries(ctello-view ctello)
+target_link_libraries(ctello-status ctello)
 
-install(TARGETS ctello-view DESTINATION bin)
+install(TARGETS ctello-status DESTINATION bin)
+
+# CTello Stream ===============================================================
+
+add_executable(ctello-stream src/ctello_stream.cpp)
+
+target_include_directories(ctello-stream PRIVATE include)
+
+target_link_libraries(ctello-stream ctello)
+
+install(TARGETS ctello-stream DESTINATION bin)
