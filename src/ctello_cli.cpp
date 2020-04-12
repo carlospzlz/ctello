@@ -77,10 +77,19 @@ const char* const HELP =
 "\n";
 // clang-format on
 
-int main()
+int main(const int argc, const char* const args[])
 {
     Tello tello{};
-    if (!tello.Bind())
+    bool bound{false};
+    if (argc > 1)
+    {
+        bound = tello.Bind(atoi(args[1]));
+    }
+    else
+    {
+        bound = tello.Bind();
+    }
+    if (!bound)
     {
         return 0;
     }
