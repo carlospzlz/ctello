@@ -21,12 +21,11 @@
 
 #include <optional>
 
-// TODO
-// Use spdlog
-
-const char* const IP{"192.168.10.1"};
-const char* const TO_PORT{"8889"};
-const int FROM_PORT{9000};
+const char* const TELLO_SERVER_IP{"192.168.10.1"};
+const char* const TELLO_SERVER_COMMAND_PORT{"8889"};
+const int LOCAL_CLIENT_COMMAND_PORT{9000};
+const int LOCAL_SERVER_STATUS_PORT{8890};
+const int LOCAL_SERVER_STREAM_PORT{11111};
 
 namespace ctello
 {
@@ -35,9 +34,10 @@ class Tello
 public:
     Tello();
     ~Tello();
-    bool Bind();
+    bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT);
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
+    void GetFrame();
 
     Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
@@ -50,7 +50,9 @@ private:
 
 private:
     int m_sockfd{0};
-    sockaddr_storage m_dest_addr{};
+    int m_stream_sockfd{0};
+    sockaddr_storage m_tello_server_command_addr{};
+    sockaddr_storage m_stream_addr{};
 };
 }  // namespace ctello
 

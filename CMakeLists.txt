@@ -27,3 +27,13 @@ target_include_directories(ctello-cli PRIVATE include)
 target_link_libraries(ctello-cli ctello)
 
 install(TARGETS ctello-cli DESTINATION bin)
+
+# CTello View =================================================================
+
+add_executable(ctello-view src/ctello_view.cpp)
+
+target_include_directories(ctello-view PRIVATE include)
+
+target_link_libraries(ctello-view ctello)
+
+install(TARGETS ctello-view DESTINATION bin)

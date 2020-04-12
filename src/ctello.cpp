@@ -75,7 +75,7 @@ std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
     if (result == -1)
     {
         std::stringstream ss;
-        ss << "bind: " << errno;
+        ss << "bind to " << port << ": " << errno;
         ss << " (" << strerror(errno) << ")";
         return {false, ss.str()};
     }
@@ -83,18 +83,17 @@ std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
     return {true, ""};
 }
 
-// Finds the destination socket address to talk to the given ip:port.
+// Finds the socket address given an ip and a port.
 // Returns whether it suceeds or not and the error message.
-std::pair<bool, std::string> FindDestinationAddr(
-    const char* const ip,
-    const char* const to_port,
-    sockaddr_storage* const dest_addr)
+std::pair<bool, std::string> FindSocketAddr(const char* const ip,
+                                            const char* const port,
+                                            sockaddr_storage* const addr)
 {
     addrinfo* result_list{nullptr};
     addrinfo hints{};
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_DGRAM;
-    int result = getaddrinfo(ip, to_port, &hints, &result_list);
+    int result = getaddrinfo(ip, port, &hints, &result_list);
 
     if (result != 0)
     {
@@ -104,7 +103,7 @@ std::pair<bool, std::string> FindDestinationAddr(
         return {false, ss.str()};
     }
 
-    memcpy(dest_addr, result_list->ai_addr, result_list->ai_addrlen);
+    memcpy(addr, result_list->ai_addr, result_list->ai_addrlen);
     freeaddrinfo(result_list);
 
     return {true, ""};
@@ -162,7 +161,9 @@ namespace ctello
 {
 Tello::Tello()
 {
+    // TODO Pass port
     m_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    m_stream_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
@@ -173,22 +174,44 @@ Tello::~Tello()
     close(m_sockfd);
 }
 
-bool Tello::Bind()
+bool Tello::Bind(const int local_client_command_port)
 {
-    auto result = ::BindSocketToPort(m_sockfd, FROM_PORT);
+    // UDP Client to send commands and receive responses.
+    // With UDP, we have to bind() the socket in the client because UDP is
+    // connectionless, so there is no other way for the stack to know which
+    // program to deliver datagrams to for a particular port.
+    auto result = ::BindSocketToPort(m_sockfd, local_client_command_port);
     if (!result.first)
     {
         spdlog::error(result.second);
         return false;
     }
 
-    result = ::FindDestinationAddr(IP, TO_PORT, &m_dest_addr);
+    result = ::FindSocketAddr(TELLO_SERVER_IP, TELLO_SERVER_COMMAND_PORT,
+                              &m_tello_server_command_addr);
     if (!result.first)
     {
         spdlog::error(result.second);
         return false;
     }
 
+    // Streaming Channel
+    result = ::BindSocketToPort(m_stream_sockfd, 9001);
+    if (!result.first)
+    {
+        spdlog::error(result.second);
+        return false;
+    }
+    /*
+    result = ::FindDestinationAddr("0.0.0.0", "11111", &m_stream_addr);
+    if (!result.first)
+    {
+        spdlog::error(result.second);
+        return false;
+    }
+    */
+
+    // Finding Tello
     spdlog::info("Finding Tello ...");
     FindTello();
     spdlog::info("Entered SDK mode");
@@ -234,29 +257,48 @@ void Tello::ShowTelloInfo()
 
 bool Tello::SendCommand(const std::string& command)
 {
-    auto result = ::SendTo(m_sockfd, m_dest_addr, command);
+    auto result = ::SendTo(m_sockfd, m_tello_server_command_addr, command);
     const int bytes{result.first};
     if (bytes == -1)
     {
         spdlog::error(result.second);
         return false;
     }
-    spdlog::debug("Sent {} bytes to {}:{}: {}", bytes, IP, TO_PORT, command);
+    // TODO change to:
+    // >>>> X bytes >>>>
+    // <<<< Y bytes <<<<
+    spdlog::debug("Sent {} bytes to {}:{}: {}", bytes, TELLO_SERVER_IP,
+                  TELLO_SERVER_COMMAND_PORT, command);
     return true;
 }
 
 std::optional<std::string> Tello::ReceiveResponse()
 {
     std::string response;
-    auto result = ::ReceiveFrom(m_sockfd, m_dest_addr, response);
+    auto result =
+        ::ReceiveFrom(m_sockfd, m_tello_server_command_addr, response);
     const int bytes{result.first};
     if (bytes < 1)
     {
         return {};
     }
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
-    spdlog::debug("Received {} bytes from {}:{}: {}", bytes, IP, TO_PORT,
-                  response);
+    spdlog::debug("Received {} bytes from {}:{}: {}", bytes, TELLO_SERVER_IP,
+                  TELLO_SERVER_COMMAND_PORT, response);
     return response;
+}
+
+void Tello::GetFrame()
+{
+    std::string response;
+    auto result = ::ReceiveFrom(m_sockfd, m_stream_addr, response);
+    const int bytes{result.first};
+    if (bytes < 1)
+    {
+        return;
+    }
+    response.erase(response.find_last_not_of(" \n\r\t") + 1);
+    spdlog::debug("Received {} bytes from {}:{}: {}", bytes, TELLO_SERVER_IP,
+                  TELLO_SERVER_COMMAND_PORT, response);
 }
 }  // namespace ctello
