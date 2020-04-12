@@ -30,7 +30,7 @@ install(TARGETS ctello-cli DESTINATION bin)
 
 # CTello Status ===============================================================
 
-add_executable(ctello-view src/ctello_status.cpp)
+add_executable(ctello-status src/ctello_status.cpp)
 
 target_include_directories(ctello-status PRIVATE include)
 
