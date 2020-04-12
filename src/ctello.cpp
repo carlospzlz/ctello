@@ -67,7 +67,9 @@ spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
 std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
 {
     sockaddr_in listen_addr{};
-    listen_addr.sin_port = static_cast<in_port_t>(port);
+    // htons converts from host byte order to network byte order.
+    listen_addr.sin_port = htons(port);
+    listen_addr.sin_addr.s_addr = INADDR_ANY;
     listen_addr.sin_family = AF_INET;
     int result = bind(sockfd, reinterpret_cast<sockaddr*>(&listen_addr),
                       sizeof(listen_addr));
@@ -133,16 +135,16 @@ std::pair<int, std::string> SendTo(const int sockfd,
 // Receives a text response from the given destination address.
 // Returns the number of received bytes and, if -1, the error message.
 std::pair<int, std::string> ReceiveFrom(const int sockfd,
-                                        sockaddr_storage& dest_addr,
+                                        sockaddr_storage& addr,
                                         std::string& response)
 {
-    socklen_t addr_len{sizeof(dest_addr)};
-    const size_t buffer_size{100};
+    socklen_t addr_len{sizeof(addr)};
+    const size_t buffer_size{1024};
     char buffer[buffer_size]{'\0'};
     // MSG_DONTWAIT -> Non-blocking
-    // recvfrom is storing (re-populating) the sender address in dest_addr.
+    // recvfrom is storing (re-populating) the sender address in addr.
     int result = recvfrom(sockfd, buffer, buffer_size, MSG_DONTWAIT,
-                          reinterpret_cast<sockaddr*>(&dest_addr), &addr_len);
+                          reinterpret_cast<sockaddr*>(&addr), &addr_len);
     if (result == -1)
     {
         std::stringstream ss;
@@ -204,15 +206,13 @@ bool Tello::Bind(const int local_client_command_port)
         return false;
     }
 
-    /*
     // Local UDP Server to listen for the Tello Video Stream
-    result = ::BindSocketToPort(m_status_sockfd, LOCAL_SERVER_STATUS_PORT);
+    result = ::BindSocketToPort(m_stream_sockfd, LOCAL_SERVER_STREAM_PORT);
     if (!result.first)
     {
         spdlog::error(result.second);
         return false;
     }
-    */
 
     // Finding Tello
     spdlog::info("Finding Tello ...");
@@ -291,7 +291,7 @@ std::optional<std::string> Tello::ReceiveResponse()
     return response;
 }
 
-void Tello::GetStatus()
+std::optional<std::string> Tello::GetStatus()
 {
     std::string response;
     sockaddr_storage addr;
@@ -299,12 +299,13 @@ void Tello::GetStatus()
     const int bytes{result.first};
     if (bytes < 1)
     {
-        return;
+        return {};
     }
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
     spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: {}",
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
                   TELLO_SERVER_COMMAND_PORT, response);
+    return response;
 }
 
 void Tello::GetFrame()

@@ -53,7 +53,7 @@ public:
     bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT);
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
-    void GetStatus();
+    std::optional<std::string> GetStatus();
     void GetFrame();
 
     Tello(const Tello&) = delete;
