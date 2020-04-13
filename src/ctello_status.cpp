@@ -55,13 +55,6 @@ int main()
         return 0;
     }
 
-    tello.SendCommand("command");
-    while (!(tello.ReceiveResponse()))
-        ;
-    tello.SendCommand("streamon");
-    while (!(tello.ReceiveResponse()))
-        ;
-
     while (true)
     {
         if (const auto status = tello.GetStatus())

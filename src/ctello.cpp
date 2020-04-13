@@ -163,7 +163,6 @@ namespace ctello
 {
 Tello::Tello()
 {
-    // TODO Pass port
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_status_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_stream_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
@@ -235,7 +234,7 @@ void Tello::FindTello()
 
 void Tello::ShowTelloInfo()
 {
-    std::optional<std::string> response{};
+    std::optional<std::string> response;
 
     SendCommand("sn?");
     while (!(response = ReceiveResponse()))

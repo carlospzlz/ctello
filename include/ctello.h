@@ -69,7 +69,7 @@ private:
     int m_command_sockfd{0};
     int m_status_sockfd{0};
     int m_stream_sockfd{0};
-    int m_local_client_command_port;
+    int m_local_client_command_port{LOCAL_CLIENT_COMMAND_PORT};
     sockaddr_storage m_tello_server_command_addr{};
 };
 }  // namespace ctello
