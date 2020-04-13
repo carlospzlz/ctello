@@ -38,8 +38,10 @@ int main()
 
     while (true)
     {
-        if (const auto status = tello.GetState())
+        if (const auto frame_opt = tello.GetFrame())
         {
+            auto frame = *frame_opt;
+            std::cout << "Frame of " << frame.size() << std::endl;
         }
     }
 }

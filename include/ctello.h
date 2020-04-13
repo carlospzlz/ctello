@@ -54,7 +54,7 @@ public:
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
     std::optional<std::string> GetState();
-    void GetFrame();
+    std::optional<std::string> GetFrame();
 
     Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;

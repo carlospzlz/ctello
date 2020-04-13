@@ -136,14 +136,15 @@ std::pair<int, std::string> SendTo(const int sockfd,
 // Returns the number of received bytes and, if -1, the error message.
 std::pair<int, std::string> ReceiveFrom(const int sockfd,
                                         sockaddr_storage& addr,
-                                        std::string& response)
+                                        std::string& response,
+                                        const int buffer_size = 1024,
+                                        const int flags = MSG_DONTWAIT)
 {
     socklen_t addr_len{sizeof(addr)};
-    const size_t buffer_size{1024};
     char buffer[buffer_size]{'\0'};
     // MSG_DONTWAIT -> Non-blocking
     // recvfrom is storing (re-populating) the sender address in addr.
-    int result = recvfrom(sockfd, buffer, buffer_size, MSG_DONTWAIT,
+    int result = recvfrom(sockfd, buffer, buffer_size, flags,
                           reinterpret_cast<sockaddr*>(&addr), &addr_len);
     if (result == -1)
     {
@@ -259,7 +260,7 @@ void Tello::ShowTelloInfo()
 
 bool Tello::SendCommand(const std::string& command)
 {
-    auto result =
+    const auto result =
         ::SendTo(m_command_sockfd, m_tello_server_command_addr, command);
     const int bytes{result.first};
     if (bytes == -1)
@@ -276,7 +277,7 @@ bool Tello::SendCommand(const std::string& command)
 std::optional<std::string> Tello::ReceiveResponse()
 {
     std::string response;
-    auto result =
+    const auto result =
         ::ReceiveFrom(m_command_sockfd, m_tello_server_command_addr, response);
     const int bytes{result.first};
     if (bytes < 1)
@@ -294,32 +295,42 @@ std::optional<std::string> Tello::GetState()
 {
     std::string response;
     sockaddr_storage addr;
-    auto result = ::ReceiveFrom(m_state_sockfd, addr, response);
+    const auto result = ::ReceiveFrom(m_state_sockfd, addr, response);
     const int bytes{result.first};
     if (bytes < 1)
     {
         return {};
     }
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
-    spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: {}",
+    spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: <string state>",
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
-                  TELLO_SERVER_COMMAND_PORT, response);
+                  TELLO_SERVER_COMMAND_PORT);
     return response;
 }
 
-void Tello::GetFrame()
+std::optional<std::string> Tello::GetFrame()
 {
-    std::string response;
-    sockaddr_storage addr;
-    auto result = ::ReceiveFrom(m_stream_sockfd, addr, response);
-    const int bytes{result.first};
-    if (bytes < 1)
+    // The frame comes sliced, in packets of 1460 bytes.
+    std::string frame_data;
+    int bytes;
+    do
     {
-        return;
+        std::string response;
+        sockaddr_storage addr;
+        const auto result =
+            ::ReceiveFrom(m_stream_sockfd, addr, response, 2048, MSG_WAITALL);
+        bytes = result.first;
+        frame_data.append(response);
+        spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: <frame slice> {}",
+                      m_local_client_command_port, bytes, TELLO_SERVER_IP,
+                      TELLO_SERVER_COMMAND_PORT, response.size());
+    } while (bytes == 1460);
+
+    if (frame_data.empty())
+    {
+        return {};
     }
-    response.erase(response.find_last_not_of(" \n\r\t") + 1);
-    spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: {}",
-                  m_local_client_command_port, bytes, TELLO_SERVER_IP,
-                  TELLO_SERVER_COMMAND_PORT, response);
+
+    return frame_data;
 }
 }  // namespace ctello
