@@ -37,8 +37,8 @@ const char* const TELLO_SERVER_COMMAND_PORT{"8889"};
 // receiving responses from the Tello.
 const int LOCAL_CLIENT_COMMAND_PORT{9000};
 
-// We need to start a local UPD server to receive status updates.
-const int LOCAL_SERVER_STATUS_PORT{8890};
+// We need to start a local UPD server to receive state updates.
+const int LOCAL_SERVER_STATE_PORT{8890};
 
 // We need to start a local UPD server to receive the streaming video.
 const int LOCAL_SERVER_STREAM_PORT{11111};
@@ -53,7 +53,7 @@ public:
     bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT);
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
-    std::optional<std::string> GetStatus();
+    std::optional<std::string> GetState();
     void GetFrame();
 
     Tello(const Tello&) = delete;
@@ -67,7 +67,7 @@ private:
 
 private:
     int m_command_sockfd{0};
-    int m_status_sockfd{0};
+    int m_state_sockfd{0};
     int m_stream_sockfd{0};
     int m_local_client_command_port{LOCAL_CLIENT_COMMAND_PORT};
     sockaddr_storage m_tello_server_command_addr{};

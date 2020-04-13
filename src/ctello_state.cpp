@@ -24,18 +24,18 @@
 
 using ctello::Tello;
 
-void ShowStatus(const std::string& status)
+void ShowStatus(const std::string& state)
 {
     system("clear");
     int begin{0};
     std::cout << "+-----------+-----------+" << std::endl;
     const int padding{10};
-    while (begin < status.size())
+    while (begin < state.size())
     {
-        const auto split{status.find(':', begin)};
-        const auto name{status.substr(begin, split - begin)};
-        const auto end{status.find(';', split)};
-        const auto value{status.substr(split + 1, end - split - 1)};
+        const auto split{state.find(':', begin)};
+        const auto name{state.substr(begin, split - begin)};
+        const auto end{state.find(';', split)};
+        const auto value{state.substr(split + 1, end - split - 1)};
         begin = end + 1;
 
         std::cout << "|  " << name;
@@ -57,9 +57,9 @@ int main()
 
     while (true)
     {
-        if (const auto status = tello.GetStatus())
+        if (const auto state = tello.GetState())
         {
-            ShowStatus(*status);
+            ShowStatus(*state);
         }
     }
 }

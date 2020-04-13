@@ -28,15 +28,15 @@ target_link_libraries(ctello-command ctello)
 
 install(TARGETS ctello-command DESTINATION bin)
 
-# CTello Status ===============================================================
+# CTello State ================================================================
 
-add_executable(ctello-status src/ctello_status.cpp)
+add_executable(ctello-state src/ctello_state.cpp)
 
-target_include_directories(ctello-status PRIVATE include)
+target_include_directories(ctello-state PRIVATE include)
 
-target_link_libraries(ctello-status ctello)
+target_link_libraries(ctello-state ctello)
 
-install(TARGETS ctello-status DESTINATION bin)
+install(TARGETS ctello-state DESTINATION bin)
 
 # CTello Stream ===============================================================
 

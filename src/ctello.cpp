@@ -164,7 +164,7 @@ namespace ctello
 Tello::Tello()
 {
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    m_status_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_stream_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
@@ -174,7 +174,7 @@ Tello::Tello()
 Tello::~Tello()
 {
     close(m_command_sockfd);
-    close(m_status_sockfd);
+    close(m_state_sockfd);
     close(m_stream_sockfd);
 }
 
@@ -198,7 +198,7 @@ bool Tello::Bind(const int local_client_command_port)
     }
 
     // Local UDP Server to listen for the Tello Status
-    result = ::BindSocketToPort(m_status_sockfd, LOCAL_SERVER_STATUS_PORT);
+    result = ::BindSocketToPort(m_state_sockfd, LOCAL_SERVER_STATE_PORT);
     if (!result.first)
     {
         spdlog::error(result.second);
@@ -290,11 +290,11 @@ std::optional<std::string> Tello::ReceiveResponse()
     return response;
 }
 
-std::optional<std::string> Tello::GetStatus()
+std::optional<std::string> Tello::GetState()
 {
     std::string response;
     sockaddr_storage addr;
-    auto result = ::ReceiveFrom(m_status_sockfd, addr, response);
+    auto result = ::ReceiveFrom(m_state_sockfd, addr, response);
     const int bytes{result.first};
     if (bytes < 1)
     {

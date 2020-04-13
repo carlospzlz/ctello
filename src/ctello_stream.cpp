@@ -24,29 +24,6 @@
 
 using ctello::Tello;
 
-void ShowStatus(const std::string& status)
-{
-    system("clear");
-    int begin{0};
-    std::cout << "+-----------+-----------+" << std::endl;
-    const int padding{10};
-    while (begin < status.size())
-    {
-        const auto split{status.find(':', begin)};
-        const auto name{status.substr(begin, split - begin)};
-        const auto end{status.find(';', split)};
-        const auto value{status.substr(split + 1, end - split - 1)};
-        begin = end + 1;
-
-        std::cout << "|  " << name;
-        std::cout << std::setw(padding - name.size()) << "|";
-        std::cout << "  " << value;
-        std::cout << std::setw(padding - value.size()) << "|";
-        std::cout << std::endl;
-    }
-    std::cout << "+-----------+-----------+" << std::endl;
-}
-
 int main()
 {
     Tello tello{};
@@ -55,18 +32,14 @@ int main()
         return 0;
     }
 
-    tello.SendCommand("command");
-    while (!(tello.ReceiveResponse()))
-        ;
     tello.SendCommand("streamon");
     while (!(tello.ReceiveResponse()))
         ;
 
     while (true)
     {
-        if (const auto status = tello.GetStatus())
+        if (const auto status = tello.GetState())
         {
-            ShowStatus(*status);
         }
     }
 }
