@@ -16,13 +16,18 @@
 //
 //  You can contact the author via carlospzlz@gmail.com
 
-#include <cstdlib>
-#include <iomanip>
-#include <iostream>
-
 #include "ctello.h"
+#include "opencv2/core.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgcodecs.hpp"
+
+const char* const TELLO_STREAM_URL{"udp://0.0.0.0:11111"};
 
 using ctello::Tello;
+using cv::CAP_FFMPEG;
+using cv::imshow;
+using cv::VideoCapture;
+using cv::waitKey;
 
 int main()
 {
@@ -36,12 +41,15 @@ int main()
     while (!(tello.ReceiveResponse()))
         ;
 
+    VideoCapture capture{TELLO_STREAM_URL, CAP_FFMPEG};
     while (true)
     {
-        if (const auto frame_opt = tello.GetFrame())
+        cv::Mat frame;
+        capture >> frame;
+        imshow("CTello Stream", frame);
+        if (waitKey(1) == 27)
         {
-            auto frame = *frame_opt;
-            std::cout << "Frame of " << frame.size() << std::endl;
+            break;
         }
     }
 }

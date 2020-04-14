@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED 17)
 
 find_package(spdlog REQUIRED)
+find_package(OpenCV REQUIRED)
 
 # CTello Shared Library =======================================================
 
@@ -45,5 +46,6 @@ add_executable(ctello-stream src/ctello_stream.cpp)
 target_include_directories(ctello-stream PRIVATE include)
 
 target_link_libraries(ctello-stream ctello)
+target_link_libraries(ctello-stream ${OpenCV_LIBS})
 
 install(TARGETS ctello-stream DESTINATION bin)
