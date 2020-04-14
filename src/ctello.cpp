@@ -164,7 +164,6 @@ Tello::Tello()
 {
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-    m_stream_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
@@ -174,7 +173,6 @@ Tello::~Tello()
 {
     close(m_command_sockfd);
     close(m_state_sockfd);
-    close(m_stream_sockfd);
 }
 
 bool Tello::Bind(const int local_client_command_port)
