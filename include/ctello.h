@@ -41,9 +41,6 @@ const int LOCAL_CLIENT_COMMAND_PORT{9000};
 // We need to start a local UPD server to receive state updates.
 const int LOCAL_SERVER_STATE_PORT{8890};
 
-// We need to start a local UPD server to receive the streaming video.
-const int LOCAL_SERVER_STREAM_PORT{11111};
-
 namespace ctello
 {
 class Tello
@@ -55,7 +52,6 @@ public:
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
     std::optional<std::string> GetState();
-    std::optional<std::vector<unsigned char>> GetFrame();
 
     Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;

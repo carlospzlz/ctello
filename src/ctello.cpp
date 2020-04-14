@@ -204,14 +204,6 @@ bool Tello::Bind(const int local_client_command_port)
         return false;
     }
 
-    // Local UDP Server to listen for the Tello Video Stream
-    result = ::BindSocketToPort(m_stream_sockfd, LOCAL_SERVER_STREAM_PORT);
-    if (!result.first)
-    {
-        spdlog::error(result.second);
-        return false;
-    }
-
     // Finding Tello
     spdlog::info("Finding Tello ...");
     FindTello();
@@ -312,32 +304,5 @@ std::optional<std::string> Tello::GetState()
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
                   TELLO_SERVER_COMMAND_PORT);
     return response;
-}
-
-std::optional<std::vector<unsigned char>> Tello::GetFrame()
-{
-    // The frame comes sliced, in packets of 1460 bytes.
-    std::vector<unsigned char> frame;
-    int bytes;
-    do
-    {
-        sockaddr_storage addr;
-        std::vector<unsigned char> buffer;
-        const auto result =
-            ::ReceiveFrom(m_stream_sockfd, addr, buffer, 2048, MSG_WAITALL);
-        bytes = result.first;
-        frame.insert(std::cend(frame), std::cbegin(buffer),
-                     std::cbegin(buffer) + bytes);
-        spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: <frame slice>",
-                      m_local_client_command_port, bytes, TELLO_SERVER_IP,
-                      TELLO_SERVER_COMMAND_PORT);
-    } while (bytes == 1460);
-
-    if (frame.empty())
-    {
-        return {};
-    }
-
-    return frame;
 }
 }  // namespace ctello
