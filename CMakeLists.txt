@@ -49,3 +49,12 @@ target_link_libraries(ctello-stream ctello)
 target_link_libraries(ctello-stream ${OpenCV_LIBS})
 
 install(TARGETS ctello-stream DESTINATION bin)
+
+# CTello Examples =============================================================
+
+add_executable(flipper examples/flipper.cpp)
+
+target_include_directories(flipper PRIVATE include)
+
+target_link_libraries(flipper ctello)
+target_link_libraries(flipper ${OpenCV_LIBS})
