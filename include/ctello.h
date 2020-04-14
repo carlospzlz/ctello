@@ -20,6 +20,7 @@
 #include <sys/types.h>
 
 #include <optional>
+#include <vector>
 
 // This is the server running in Tello, where we send commands to and we
 // receive responses from
@@ -54,7 +55,7 @@ public:
     bool SendCommand(const std::string& command);
     std::optional<std::string> ReceiveResponse();
     std::optional<std::string> GetState();
-    std::optional<std::string> GetFrame();
+    std::optional<std::vector<unsigned char>> GetFrame();
 
     Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
