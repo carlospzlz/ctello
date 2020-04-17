@@ -52,9 +52,18 @@ install(TARGETS ctello-stream DESTINATION bin)
 
 # CTello Examples =============================================================
 
-add_executable(flipper examples/flipper.cpp)
+## Flip -----------------------------------------------------------------------
+add_executable(flip examples/flip.cpp)
 
-target_include_directories(flipper PRIVATE include)
+target_include_directories(flip PRIVATE include)
 
-target_link_libraries(flipper ctello)
-target_link_libraries(flipper ${OpenCV_LIBS})
+target_link_libraries(flip ctello)
+target_link_libraries(flip ${OpenCV_LIBS})
+
+## Follow ---------------------------------------------------------------------
+add_executable(follow examples/follow.cpp)
+
+target_include_directories(follow PRIVATE include)
+
+target_link_libraries(follow ctello)
+target_link_libraries(follow ${OpenCV_LIBS})
