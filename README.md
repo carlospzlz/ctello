@@ -1,7 +1,7 @@
-# Introduction
-CTello is C++ library to interact with the **DJI Ryze Tello Drone** using the
+# CTello
+CTello is a C++ library to interact with the **DJI Ryze Tello Drone** using the
 **Tello SDK 2.0**.
-The purpuse of this project is to encapsulate the UDP socket communication and
+The purpose of this project is to encapsulate the UDP socket communication and
 provide a clean and easy-to-use interface to control the drone. However, CTello
 has no clutter that might hide parts of the Tello communication protocol, or
 restrict the interaction with the device in any way. CTello is transparent to
@@ -10,7 +10,7 @@ control to the user over the drone.
 
 See the [Tello SDK 2.0 User Guide](https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf)
 
-# Dependencies
+## Dependencies
 This project was developed and tested with the versions listed below.
 
 | Name        | Version                |
@@ -21,7 +21,7 @@ This project was developed and tested with the versions listed below.
 |spdlog       | 1.5.0-1                |
 |OpenCV       | 4.2.0-2                |
 
-# Quickstart
+## Build & install
 
 Clone the repository:
 ```
@@ -40,11 +40,13 @@ Install it:
 ```
 sudo make install
 ```
-This will install the library in `/usr/local`
+This will install the library in `/usr/local`.
 
-Now you write a very simple program like this:
+# Quickstart
 
-```lang=c++
+Now you can write a very simple program like this:
+
+```c++
 #include "ctello.h"
 
 int main()
@@ -75,12 +77,20 @@ g++ -std=c++17 -I/usr/local/include flip_world.cpp /usr/local/lib/libctello.so
 
 Switch on your Tello and connect to its Wi-Fi.
 
-Run you Flip World. You can enable logging output to see what's going on:
+Run your FlipWorld. You can enable logging output to see what's going on:
 ```
 env SPDLOG_LEVEL=debug ./a.out
 ```
 
+Some examples are provided to illustrate what you can do with CTello:
+ - flip
+ - follow
+
+In addition, you can always have a look at the CTello executables source code.
+
 # CTello executables
+
+CTello
 
 
 
