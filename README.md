@@ -77,7 +77,7 @@ g++ -std=c++17 -I/usr/local/include flip_world.cpp /usr/local/lib/libctello.so -
 
 Switch on your Tello and connect to its Wi-Fi.
 
-Run your *flip-world* (you may need to add `/usr/local/lib` to your
+Run your **flip-world** (you may need to add `/usr/local/lib` to your
 `LD_LIBRARY_PATH`):
 ```
 ./flip-world
@@ -87,12 +87,6 @@ You can also enable logging output to see in detail what's going on:
 ```
 env SPDLOG_LEVEL=debug ./flip-world
 ```
-
-Some examples are provided to illustrate what you can do with CTello:
- - flip
- - follow
-
-In addition, you can always have a look at the CTello executables' source code.
 
 ## CTello executables
 
