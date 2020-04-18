@@ -40,9 +40,9 @@ Install it:
 ```
 sudo make install
 ```
-This will install the library in `/usr/local`.
+This will install the library plus some tools in `/usr/local`.
 
-# Quickstart
+## Quickstart
 
 Now you can write a very simple program like this:
 
@@ -52,22 +52,22 @@ Now you can write a very simple program like this:
 int main()
 {
     ctello::Tello tello;
-	if (!tello.Bind())
-	{
-	    return 0;
-	}
+    if (!tello.Bind())
+    {
+    return 0;
+    }
 
-	tello.SendCommand("takeoff");
-	// Wait for response
-	while (!(tello.ReceiveResponse()));
+    tello.SendCommand("takeoff");
+    // Wait for response
+    while (!(tello.ReceiveResponse()));
 
-	tello.SendCommand("flip b");
-	while (!(tello.ReceiveResponse()));
+    tello.SendCommand("flip b");
+    while (!(tello.ReceiveResponse()));
 
-	tello.SendCommand("land");
-	while (!(tello.ReceiveResponse()));
+    tello.SendCommand("land");
+    while (!(tello.ReceiveResponse()));
 
-	return 0;
+    return 0;
 }
 ```
 Build it:
@@ -86,9 +86,9 @@ Some examples are provided to illustrate what you can do with CTello:
  - flip
  - follow
 
-In addition, you can always have a look at the CTello executables source code.
+In addition, you can always have a look at the CTello executables' source code.
 
-# CTello executables
+## CTello executables
 
 CTello
 
