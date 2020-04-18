@@ -77,7 +77,13 @@ g++ -std=c++17 -I/usr/local/include flip_world.cpp /usr/local/lib/libctello.so
 
 Switch on your Tello and connect to its Wi-Fi.
 
-Run your FlipWorld. You can enable logging output to see what's going on:
+Run your FlipWorld:
+```
+./a.out
+```
+*You may need to add /usr/local/lib to your LD_LIBRARY_PATH*
+
+You can also enable logging output to see in detail what's going on:
 ```
 env SPDLOG_LEVEL=debug ./a.out
 ```
