@@ -90,7 +90,19 @@ env SPDLOG_LEVEL=debug ./flip-world
 
 ## CTello executables
 
-CTello
+This project includes some executables built on top of the CTello library.
+
+### ctello-command
+
+Emulates a command line interpreter to send commands to the drone.
+
+### ctello-state
+
+Receives the state of the drone and Shows a table with the different fields.
+
+### ctello-stream
+
+Receives the video stream from the drone and displays it in an OpenCV window.
 
 
 
