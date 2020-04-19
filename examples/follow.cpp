@@ -31,10 +31,19 @@ const char* const TELLO_STREAM_URL{"udp://0.0.0.0:11111"};
 
 // The frame size is 720x960.
 // We assume the Tello's ray of vision to hit 360x430.
-cv::Point2i TELLO_POSITION(430, 360);
+const cv::Point2i TELLO_POSITION(430, 360);
 
-// Step to move
-const char* const STEP{"60"};
+// Distance to consider target found.
+const int SQUARE_TARTET_DISTANCE{2500};
+
+// Amount of centimeters to move per pixel.
+const float CM_PER_PIXEL{0.3};
+
+// Maximum step to move.
+const int MIN_STEP{20};
+
+// Minimum step to move.
+const int MAX_STEP{60};
 
 using ctello::Tello;
 using cv::CAP_FFMPEG;
@@ -52,6 +61,8 @@ namespace
 {
 bool IsTarget(const uchar B, const uchar G, const uchar R)
 {
+    // Green is target.
+    // return B < 150 && G > 200 && R < 150;
     // Target is light.
     return B > 250 && G > 250 && R > 250;
 }
@@ -90,30 +101,37 @@ std::optional<Point2i> FindTarget(const Mat& frame)
 
 std::pair<std::string, Point2i> Steer(const Point2i& position,
                                       const Point2i& target,
-                                      const std::string& step)
+                                      const int square_target_distance,
+                                      const float cm_per_pixel,
+                                      const int min_step,
+                                      const int max_step)
 {
     std::string command;
     const Point2i velocity{target - position};
-    if (abs(velocity.y) > abs(velocity.x))
+    if (abs(velocity.x) > abs(velocity.y))
     {
-        if (velocity.y < 0)
+        auto step = static_cast<int>(velocity.x * cm_per_pixel);
+        step = std::max(std::min(step, max_step), min_step);
+        if (velocity.x > 0)
         {
-            command = "up " + step;
+            command = "right " + std::to_string(step);
         }
         else
         {
-            command = "down " + step;
+            command = "left " + std::to_string(step);
         }
     }
     else
     {
-        if (velocity.x > 0)
+        auto step = static_cast<int>(velocity.y * cm_per_pixel);
+        step = std::max(std::min(step, max_step), min_step);
+        if (velocity.y < 0)
         {
-            command = "right " + step;
+            command = "up " + std::to_string(step);
         }
         else
         {
-            command = "left " + step;
+            command = "down " + std::to_string(step);
         }
     }
     return {command, velocity};
@@ -162,23 +180,41 @@ int main()
         ;
 
     int index{0};
+    bool busy{false};
     while (true)
     {
         // See surrounding
         Mat frame;
         capture >> frame;
 
+        // Listen response
+        if (const auto response = tello.ReceiveResponse())
+        {
+            std::cout << "Tello: " << *response << std::endl;
+            busy = false;
+        }
+
         // Act
         if (const auto target = FindTarget(frame))
         {
-            const auto steer = Steer(TELLO_POSITION, *target, STEP);
+            const auto steer =
+                Steer(TELLO_POSITION, *target, SQUARE_TARTET_DISTANCE,
+                      CM_PER_PIXEL, MIN_STEP, MAX_STEP);
             const std::string command{steer.first};
-            Point2i velocity{steer.second};
-            tello.SendCommand(command);
-            std::cout << "Command: " << command << std::endl;
-            // Show how Tello sees the target
-            DrawMaxRowAndCol(frame, *target);
-            DrawVelocity(frame, TELLO_POSITION, velocity);
+            if (!command.empty())
+            {
+                Point2i velocity{steer.second};
+                if (!busy)
+                {
+                    tello.SendCommand(command);
+                    std::cout << "Command: " << command << std::endl;
+                    busy = true;
+                }
+
+                // Show how Tello sees the target
+                DrawMaxRowAndCol(frame, *target);
+                DrawVelocity(frame, TELLO_POSITION, velocity);
+            }
         }
 
         // Show what the Tello sees
