@@ -61,8 +61,6 @@ namespace
 {
 bool IsTarget(const uchar B, const uchar G, const uchar R)
 {
-    // Green is target.
-    // return B < 150 && G > 200 && R < 150;
     // Target is light.
     return B > 250 && G > 250 && R > 250;
 }
