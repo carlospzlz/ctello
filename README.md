@@ -98,13 +98,29 @@ This project includes some executables built on top of the CTello library.
 
 Emulates a command line interpreter to send commands to the drone.
 
+[![](https://img.youtube.com/vi/oCv5PHMtE3U/0.jpg)](https://youtu.be/oCv5PHMtE3U)
+
 ### ctello-state
 
 Receives the state of the drone and Shows a table with the different fields.
+
+[![](https://img.youtube.com/vi/n3GP9yxDCek/0.jpg)](https://youtu.be/n3GP9yxDCek)
 
 ### ctello-stream
 
 Receives the video stream from the drone and displays it in an OpenCV window.
 
+## CTello examples
 
+Two examples are included.
 
+### flip
+
+Very simple example, similar to the previous **flip-world**.
+
+### follow
+
+This example shows case how image processing can be use to drive the drone's actions.
+Here, we try to follow a light by steering the drone towards it.
+
+[![](https://img.youtube.com/vi/zipNif-n0Yk/0.jpg)](https://youtu.be/zipNif-n0Yk)
