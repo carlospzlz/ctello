@@ -123,4 +123,4 @@ Very simple example, similar to the previous **flip-world**.
 This example shows case how image processing can be use to drive the drone's actions.
 Here, we try to follow a light by steering the drone towards it.
 
-[![](https://img.youtube.com/vi/zipNif-n0Yk/0.jpg)](https://youtu.be/zipNif-n0Yk)
+[![](https://img.youtube.com/vi/DtjBLWju8Jw/0.jpg)](https://youtu.be/DtjBLWju8Jw)
