@@ -8,6 +8,8 @@ restrict the interaction with the device in any way. CTello is transparent to
 the commands that are sent or responses that are received and gives full
 control to the user over the drone.
 
+![](captures/tello_cover.jpg)
+
 See the [Tello SDK 2.0 User Guide](https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf)
 
 ## Dependencies
