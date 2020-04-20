@@ -44,9 +44,8 @@ int main()
         ;
 
     VideoCapture capture{TELLO_STREAM_URL, CAP_FFMPEG};
-    std::array<std::string, 11> commands{"takeoff", "flip l", "flip r",
-                                         "flip f",  "flip b", "stop",
-                                         "cw 360",  "land"};
+    std::array<std::string, 8> commands{"takeoff", "flip l", "flip r", "flip f",
+                                        "flip b",  "stop",   "cw 360", "land"};
     int index{0};
     bool busy{false};
     while (true)
