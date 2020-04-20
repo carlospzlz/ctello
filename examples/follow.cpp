@@ -177,7 +177,6 @@ int main()
     while (!(tello.ReceiveResponse()))
         ;
 
-    int index{0};
     bool busy{false};
     while (true)
     {
