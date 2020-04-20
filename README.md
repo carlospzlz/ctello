@@ -35,7 +35,7 @@ Build it:
 mkdir build
 cd build
 cmake ..
-make
+make -j
 ```
 
 Install it:
@@ -56,7 +56,7 @@ int main()
     ctello::Tello tello;
     if (!tello.Bind())
     {
-    return 0;
+        return 0;
     }
 
     tello.SendCommand("takeoff");
@@ -102,7 +102,7 @@ Emulates a command line interpreter to send commands to the drone.
 
 ### ctello-state
 
-Receives the state of the drone and Shows a table with the different fields.
+Receives the state of the drone and shows a table with the different fields.
 
 [![](https://img.youtube.com/vi/n3GP9yxDCek/0.jpg)](https://youtu.be/n3GP9yxDCek)
 
@@ -120,7 +120,8 @@ Very simple example, similar to the previous **flip-world**.
 
 ### follow
 
-This example shows case how image processing can be use to drive the drone's actions.
+This example shows case how image processing can be used to drive the drone's
+actions.
 Here, we try to follow a light by steering the drone towards it.
 
 [![](https://img.youtube.com/vi/DtjBLWju8Jw/0.jpg)](https://youtu.be/DtjBLWju8Jw)
