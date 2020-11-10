@@ -21,6 +21,7 @@
 
 #include <optional>
 #include <vector>
+#include <string>
 
 // This is the server running in Tello, where we send commands to and we
 // receive responses from
