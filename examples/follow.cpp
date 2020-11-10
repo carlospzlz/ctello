@@ -30,8 +30,8 @@
 const char* const TELLO_STREAM_URL{"udp://0.0.0.0:11111"};
 
 // The frame size is 720x960.
-// We assume the Tello's ray of vision to hit 360x430.
-const cv::Point2i TELLO_POSITION(430, 360);
+// We assume the Tello's ray of vision to hit 360x480.
+const cv::Point2i TELLO_POSITION(480, 360);
 
 // Distance to consider target found.
 const int SQUARE_TARTET_DISTANCE{2500};
