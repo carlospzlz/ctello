@@ -50,6 +50,16 @@ target_link_libraries(ctello-stream ${OpenCV_LIBS})
 
 install(TARGETS ctello-stream DESTINATION bin)
 
+# CTello Joystick =============================================================
+
+add_executable(ctello-joystick src/ctello_joystick.cpp)
+
+target_include_directories(ctello-joystick PRIVATE include)
+
+target_link_libraries(ctello-joystick ctello)
+
+install(TARGETS ctello-stream DESTINATION bin)
+
 # CTello Examples =============================================================
 
 ## Flip -----------------------------------------------------------------------
