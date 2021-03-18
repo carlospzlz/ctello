@@ -1,2 +1,0 @@
-/usr/bin/ar qc libctello.a  CMakeFiles/ctello.dir/src/ctello.cpp.o
-/usr/bin/ranlib libctello.a

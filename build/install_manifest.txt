@@ -1,4 +1,0 @@
-/usr/local/lib/libctello.a
-/usr/local/include/ctello.h
-/usr/local/bin/ctello-command
-/usr/local/bin/ctello-state

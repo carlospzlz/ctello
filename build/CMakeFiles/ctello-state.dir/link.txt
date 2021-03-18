@@ -1,1 +1,0 @@
-/usr/bin/c++     CMakeFiles/ctello-state.dir/src/ctello_state.cpp.o  -o ctello-state libctello.a /usr/local/lib/libspdlog.a -lpthread 
