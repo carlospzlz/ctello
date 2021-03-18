@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../include/ctello.h
+sys/socket.h
+-
+sys/types.h
+-
+akrzemi1/optional.hpp
+-
+vector
+-
+unistd.h
+-
+sys/stat.h
+-
+sstream
+-
+fstream
+-
+iostream
+-
+string
+-
+
+/home/rbdstudent/ctello/examples/flip.cpp
+iostream
+-
+ctello.h
+/home/rbdstudent/ctello/examples/ctello.h
+

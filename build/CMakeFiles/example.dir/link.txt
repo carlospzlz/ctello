@@ -1,0 +1,1 @@
+/usr/bin/c++     CMakeFiles/example.dir/examples/flip.cpp.o  -o example libctello.a /usr/local/lib/libspdlog.a -lpthread 

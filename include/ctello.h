@@ -15,12 +15,17 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>
 //
 //  You can contact the author via carlospzlz@gmail.com
-
 #include <sys/socket.h>
 #include <sys/types.h>
-
-#include <optional>
+#include <akrzemi1/optional.hpp>
 #include <vector>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <sstream>
+
+#include <fstream>
+#include <iostream>
+#include <string>
 
 // This is the server running in Tello, where we send commands to and we
 // receive responses from
@@ -49,10 +54,15 @@ public:
     Tello();
     ~Tello();
     bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT);
+    int GetBatteryStatus();
     bool SendCommand(const std::string& command);
-    std::optional<std::string> ReceiveResponse();
-    std::optional<std::string> GetState();
-
+    bool SendCommandWithResponse(const std::string& command);
+    bool EasyLanding();
+    std::string GetTelloName();
+    std::experimental::optional<std::string> ReceiveResponse();
+    std::experimental::optional<std::string> GetState();
+    void createSockets();
+    void closeSockets();
     Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
     Tello& operator=(const Tello&) = delete;
@@ -61,7 +71,8 @@ public:
 private:
     void FindTello();
     void ShowTelloInfo();
-
+    std::string logFileName= "";
+    std::ofstream telloLogFile;
 private:
     int m_command_sockfd{0};
     int m_state_sockfd{0};

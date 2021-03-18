@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.10)
 
 project(CTello)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED 17)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED 11)
 
 find_package(spdlog REQUIRED)
-find_package(OpenCV REQUIRED)
+
 
 # CTello Shared Library =======================================================
 
-add_library(ctello SHARED src/ctello.cpp)
+add_library(ctello src/ctello.cpp)
 
 target_include_directories(ctello PRIVATE include)
 
@@ -39,31 +39,8 @@ target_link_libraries(ctello-state ctello)
 
 install(TARGETS ctello-state DESTINATION bin)
 
-# CTello Stream ===============================================================
+add_executable(example examples/flip.cpp)
 
-add_executable(ctello-stream src/ctello_stream.cpp)
+target_include_directories(example PRIVATE include)
 
-target_include_directories(ctello-stream PRIVATE include)
-
-target_link_libraries(ctello-stream ctello)
-target_link_libraries(ctello-stream ${OpenCV_LIBS})
-
-install(TARGETS ctello-stream DESTINATION bin)
-
-# CTello Examples =============================================================
-
-## Flip -----------------------------------------------------------------------
-add_executable(flip examples/flip.cpp)
-
-target_include_directories(flip PRIVATE include)
-
-target_link_libraries(flip ctello)
-target_link_libraries(flip ${OpenCV_LIBS})
-
-## Follow ---------------------------------------------------------------------
-add_executable(follow examples/follow.cpp)
-
-target_include_directories(follow PRIVATE include)
-
-target_link_libraries(follow ctello)
-target_link_libraries(follow ${OpenCV_LIBS})
+target_link_libraries(example ctello)
