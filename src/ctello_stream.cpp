@@ -16,6 +16,8 @@
 //
 //  You can contact the author via carlospzlz@gmail.com
 
+#include "unistd.h"
+
 #include "ctello.h"
 #include "opencv2/core.hpp"
 #include "opencv2/highgui.hpp"
@@ -46,7 +48,10 @@ int main()
     {
         cv::Mat frame;
         capture >> frame;
-        imshow("CTello Stream", frame);
+        if (!frame.empty())
+        {
+            imshow("CTello Stream", frame);
+        }
         if (waitKey(1) == 27)
         {
             break;
