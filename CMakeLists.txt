@@ -58,7 +58,7 @@ target_include_directories(ctello-joystick PRIVATE include)
 
 target_link_libraries(ctello-joystick ctello)
 
-install(TARGETS ctello-stream DESTINATION bin)
+install(TARGETS ctello-joystick DESTINATION bin)
 
 # CTello Examples =============================================================
 
