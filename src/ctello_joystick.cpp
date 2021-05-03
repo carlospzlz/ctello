@@ -26,9 +26,9 @@
 
 #include "ctello.h"
 
+static constexpr char INPUT_DEVICE_NAME[]{"/dev/input/js0"};
 static constexpr int MAX_AXIS_VALUE{32767};
 static constexpr int AXIS_SCALE{30};
-static constexpr char INPUT_DEVICE_NAME[]{"/dev/input/js0"};
 
 using ctello::Tello;
 
