@@ -8,7 +8,7 @@ restrict the interaction with the device in any way. CTello is transparent to
 the commands that are sent or responses that are received and gives full
 control to the user over the drone.
 
-![](captures/tello_cover.jpg)
+![](resources/images/tello_cover.jpg)
 
 See the [Tello SDK 2.0 User Guide](https://dl-cdn.ryzerobotics.com/downloads/Tello/Tello%20SDK%202.0%20User%20Guide.pdf)
 
@@ -74,7 +74,7 @@ int main()
 ```
 Build it:
 ```
-g++ -std=c++17 -I/usr/local/include flip_world.cpp /usr/local/lib/libctello.so -o flip-world
+g++ -std=c++17 -I/usr/local/include -L/usr/local/lib flip_world.cpp -lctello -o flip-world
 ```
 
 Switch on your Tello and connect to its Wi-Fi.
@@ -109,6 +109,13 @@ Receives the state of the drone and shows a table with the different fields.
 ### ctello-stream
 
 Receives the video stream from the drone and displays it in an OpenCV window.
+
+### ctello-joystick
+
+Allows to send commands to the drone using a PlayStation DualShock 4
+controller. This is implemented using the Linux Joystick API.
+
+![](resources/images/ctello_joystick.png)
 
 ## CTello examples
 
