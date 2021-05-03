@@ -1,5 +1,5 @@
 //  CTello is a C++ library to interact with the DJI Ryze Tello Drone
-//  Copyright (C) 2020 Carlos Perez-Lopez
+//  Copyright (C) 2021 Carlos Perez-Lopez
 //
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU General Public License as published by
@@ -18,12 +18,17 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <cmath>
 #include <linux/joystick.h>
 
 #include <iostream>
 #include <optional>
 
 #include "ctello.h"
+
+static constexpr int MAX_AXIS_VALUE{32767};
+static constexpr int AXIS_SCALE{30};
+static constexpr char INPUT_DEVICE_NAME[]{"/dev/input/js0"};
 
 using ctello::Tello;
 
@@ -79,13 +84,15 @@ private:
         SQUARE,
         L1,
         R1,
+        L2,
+        R2,
     };
 
     enum DS4_AXIS
     {
         L3_X,
         L3_Y,
-        L2,
+        L2_AXIS,
         R3_X,
         R3_Y,
     };
@@ -105,6 +112,26 @@ private:
             m_action_cmd = "land";
             break;
         }
+        case DS4_BUTTONS::L1:
+        {
+            m_action_cmd = "flip l";
+            break;
+        }
+        case DS4_BUTTONS::R1:
+        {
+            m_action_cmd = "flip r";
+            break;
+        }
+        case DS4_BUTTONS::L2:
+        {
+            m_action_cmd = "flip b";
+            break;
+        }
+        case DS4_BUTTONS::R2:
+        {
+            m_action_cmd = "flip f";
+            break;
+        }
         }
     }
 
@@ -116,29 +143,34 @@ private:
             return;
         }
 
+        std::string cmd;
         switch (number)
         {
         case DS4_AXIS::L3_X:
         {
-            m_move_cmd = value > 0 ? "cw 1" : "ccw 1";
+            cmd = value > 0 ? "cw" : "ccw";
             break;
         }
         case DS4_AXIS::L3_Y:
         {
-            m_move_cmd = value > 0 ? "down 1" : "up 1";
+            cmd = value > 0 ? "down" : "up";
             break;
         }
         case DS4_AXIS::R3_X:
         {
-            m_move_cmd = value > 0 ? "right 1" : "left 1";
+            cmd = value > 0 ? "right" : "left";
             break;
         }
         case DS4_AXIS::R3_Y:
         {
-            m_move_cmd = value > 0 ? "forward 1" : "back 1";
+            cmd = value > 0 ? "back" : "forward";
             break;
         }
         }
+
+        auto val = static_cast<int>(
+            round(20 + fabs(value / float(MAX_AXIS_VALUE)) * AXIS_SCALE));
+        m_move_cmd = cmd + " " + std::to_string(val);
     }
 
 private:
@@ -156,7 +188,7 @@ int main()
         return 0;
     }
 
-    Joystick joystick{"/dev/input/js0"};
+    Joystick joystick{INPUT_DEVICE_NAME};
     while (true)
     {
         joystick.ProcessEvents();
@@ -164,7 +196,6 @@ int main()
         if (const auto cmd = joystick.GetCmd())
         {
             tello.SendCommand(*cmd);
-            std::cout << *cmd << std::endl;
         }
 
         // Sleep for 20ms
