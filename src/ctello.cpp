@@ -162,13 +162,13 @@ Tello::Tello()
 Tello::~Tello()
 {
     closeSockets();
-    if (!logFileName.empty()){
+    /*if (!logFileName.empty()){
         auto now = std::chrono::system_clock::to_time_t(
             std::chrono::system_clock::now());
         std::string date = std::ctime(&now);
         telloLogFile << "end time:" << date << std::endl;
         telloLogFile.close();
-    }
+    }*/
 }
 void Tello::closeSockets()
 {
@@ -180,7 +180,7 @@ void Tello::createSockets()
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 }
-bool Tello::Bind(const int local_client_command_port)
+bool Tello::Bind(const int local_client_command_port,int local_server_command_port)
 {
     // UDP Client to send commands and receive responses
     auto result =
@@ -200,7 +200,7 @@ bool Tello::Bind(const int local_client_command_port)
     }
 
     // Local UDP Server to listen for the Tello Status
-    result = ::BindSocketToPort(m_state_sockfd, LOCAL_SERVER_STATE_PORT);
+    result = ::BindSocketToPort(m_state_sockfd, local_server_command_port);
     if (!result.first)
     {
         spdlog::error(result.second);
@@ -213,14 +213,15 @@ bool Tello::Bind(const int local_client_command_port)
     spdlog::info("Entered SDK mode");
 
     ShowTelloInfo();
-    struct stat info;
+    /*struct stat info;
 
     if (stat("/home", &info) == 0 && (info.st_mode & S_IFDIR))
     {
         char userName[255];
         getlogin_r(userName, 255);
-        std::string telloFolder = "/home/" + std::string(userName) + "/tello_logs";
-        if (!(stat(telloFolder.c_str(), &info) == 0 && info.st_mode & S_IFDIR))
+        std::string telloFolder = "/home/" + std::string(userName) +
+    "/tello_logs"; if (!(stat(telloFolder.c_str(), &info) == 0 && info.st_mode &
+    S_IFDIR))
         {
             system(("mkdir " + telloFolder).c_str());
         }
@@ -231,7 +232,7 @@ bool Tello::Bind(const int local_client_command_port)
         logFileName = telloFolder + "/" + date + ".log";
         telloLogFile = std::ofstream(logFileName);
         telloLogFile << "start time:" << date << std::endl;
-    }
+    }*/
     return true;
 }
 
@@ -245,31 +246,88 @@ void Tello::FindTello()
 }
 std::string Tello::GetTelloName()
 {
-    std::experimental::optional<std::string> response;
+    std::optional<std::string> response;
     SendCommand("sn?");
     while (!(response = ReceiveResponse()))
         ;
     return response.value();
 }
-bool Tello::EasyLanding(){
-    while (!SendCommandWithResponse("down 20"));
+bool Tello::EasyLanding()
+{
+    while (!SendCommandWithResponse("down 20"))
+        ;
     SendCommand("land");
+}
+double Tello::GetSpeedStatus()
+{
+    std::optional<std::string> response;
+    SendCommand("speed?");
+    while (!(response = ReceiveResponse()))
+        ;
+    if (response)
+    {
+        try
+        {
+            return std::stod(response.value());
+        }
+        catch (...)
+        {
+            return 0;
+        }
+    }
+    return 0;
+
+}
+std::string Tello::GetAccelerationStatus(){
+    std::optional<std::string> response;
+    SendCommand("acceleration?");
+    while (!(response = ReceiveResponse()));
+    if (response.has_value())
+    {
+            return response.value();
+    }
+    return "";
+}
+int Tello::GetHeightStatus(){
+    std::optional<std::string> response;
+    SendCommand("height?");
+    while (!(response = ReceiveResponse()))
+        ;
+    if (response)
+    {
+        try
+        {
+            return std::stoi(response.value());
+        }
+        catch (...)
+        {
+            return 0;
+        }
+    }
+    return 0;
 }
 int Tello::GetBatteryStatus()
 {
-    std::experimental::optional<std::string> response;
+    std::optional<std::string> response;
     SendCommand("battery?");
     while (!(response = ReceiveResponse()))
         ;
     if (response)
     {
-        return std::stoi(response.value());
+        try
+        {
+            return std::stoi(response.value());
+        }
+        catch (...)
+        {
+            return 0;
+        }
     }
     return 0;
 }
 void Tello::ShowTelloInfo()
 {
-    std::experimental::optional<std::string> response;
+    std::optional<std::string> response;
 
     SendCommand("sn?");
     while (!(response = ReceiveResponse()))
@@ -310,23 +368,22 @@ bool Tello::SendCommand(const std::string& command)
 bool Tello::SendCommandWithResponse(const std::string& command)
 {
     const std::vector<unsigned char> message{command.begin(), command.end()};
-    auto start = std::chrono::system_clock::now();
+    /*auto start = std::chrono::system_clock::now();
     if (!logFileName.empty()){
         auto now = std::chrono::system_clock::to_time_t(start);
         std::string date = std::ctime(&now);
         telloLogFile << "time:" << date << ",battery:" << GetBatteryStatus()
                      << ",command:" << command << ",";
-    }
-
+    }*/
 
     const auto result =
         ::SendTo(m_command_sockfd, m_tello_server_command_addr, message);
     const int bytes{result.first};
     if (bytes == -1)
     {
-        if (!logFileName.empty()){
+        /*if (!logFileName.empty()){
             telloLogFile << "failed" << std::endl;
-        }
+        }*/
         spdlog::error(result.second);
         return false;
     }
@@ -336,26 +393,24 @@ bool Tello::SendCommandWithResponse(const std::string& command)
         recv(m_command_sockfd, answer, 2048, 0);
     }
     std::string strAnswer(answer);
-    spdlog::info(strAnswer);
+    spdlog::info(strAnswer + ": " +
+                 std::string(message.begin(), message.end()));
     spdlog::debug("127.0.0.1:{} >>>> {} bytes >>>> {}:{}: {}",
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
                   TELLO_SERVER_COMMAND_PORT, command);
-
-    // Some computation here
-    bool isSuccess = strAnswer.find("OK") != std::string::npos ||
-                     strAnswer.find("ok") != std::string::npos;
-    if (!logFileName.empty()){
+    bool isSuccess = strAnswer.find("ok") != std::string::npos ||
+                     strAnswer.find("OK") != std::string::npos;
+    /*if (!logFileName.empty()){
         auto end = std::chrono::system_clock::now();
         std::chrono::duration<double> elapsed_seconds = end - start;
         telloLogFile << "completed in:" << elapsed_seconds.count()
                      << ",battery:" << GetBatteryStatus()
                      << ",success:" << isSuccess << std::endl;
-    }
-
+    }*/
     return isSuccess;
 }
 
-std::experimental::optional<std::string> Tello::ReceiveResponse()
+std::optional<std::string> Tello::ReceiveResponse()
 {
     const int size{32};
     std::vector<unsigned char> buffer(size, '\0');
@@ -374,8 +429,7 @@ std::experimental::optional<std::string> Tello::ReceiveResponse()
                   TELLO_SERVER_COMMAND_PORT, response);
     return response;
 }
-
-std::experimental::optional<std::string> Tello::GetState()
+std::optional<std::string> Tello::GetState()
 {
     sockaddr_storage addr;
     const int size{1024};

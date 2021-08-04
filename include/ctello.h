@@ -17,12 +17,11 @@
 //  You can contact the author via carlospzlz@gmail.com
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <akrzemi1/optional.hpp>
 #include <vector>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sstream>
-
+#include <optional>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -53,26 +52,29 @@ class Tello
 public:
     Tello();
     ~Tello();
-    bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT);
+    bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,int local_server_command_port = LOCAL_SERVER_STATE_PORT);
     int GetBatteryStatus();
+    int GetHeightStatus();
+    std::string GetAccelerationStatus();
+    double GetSpeedStatus();
     bool SendCommand(const std::string& command);
     bool SendCommandWithResponse(const std::string& command);
     bool EasyLanding();
     std::string GetTelloName();
-    std::experimental::optional<std::string> ReceiveResponse();
-    std::experimental::optional<std::string> GetState();
+    std::optional<std::string> ReceiveResponse();
+    std::optional<std::string> GetState();
     void createSockets();
     void closeSockets();
-    Tello(const Tello&) = delete;
+    /*Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
     Tello& operator=(const Tello&) = delete;
-    Tello& operator=(const Tello&&) = delete;
+    Tello& operator=(const Tello&&) = delete;*/
 
 private:
     void FindTello();
     void ShowTelloInfo();
-    std::string logFileName= "";
-    std::ofstream telloLogFile;
+    /*std::string logFileName= "";
+    std::ofstream telloLogFile;*/
 private:
     int m_command_sockfd{0};
     int m_state_sockfd{0};
@@ -80,4 +82,3 @@ private:
     sockaddr_storage m_tello_server_command_addr{};
 };
 }  // namespace ctello
-
