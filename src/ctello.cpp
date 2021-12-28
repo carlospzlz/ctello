@@ -189,7 +189,8 @@ void Tello::RcCommand(const std::string& rcCommand)
         std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
     if (microseconds < timeBetweenRcCommandInMicroSeconds)
     {
-        std::cout << timeBetweenRcCommandInMicroSeconds - microseconds <<std::endl;
+        std::cout << timeBetweenRcCommandInMicroSeconds - microseconds
+                  << std::endl;
         usleep(timeBetweenRcCommandInMicroSeconds - microseconds);
     }
     SendCommand(rcCommand);
@@ -383,34 +384,33 @@ bool Tello::SendCommand(const std::string& command)
                   TELLO_SERVER_COMMAND_PORT, command);
     return true;
 }
-bool Tello::SendCommandWithResponse(const std::string& command)
+bool Tello::SendCommandWithResponse(const std::string& command,
+                                    int amountOfTries)
 {
     const std::vector<unsigned char> message{command.begin(), command.end()};
-    /*auto start = std::chrono::system_clock::now();
-    if (!logFileName.empty()){
-        auto now = std::chrono::system_clock::to_time_t(start);
-        std::string date = std::ctime(&now);
-        telloLogFile << "time:" << date << ",battery:" << GetBatteryStatus()
-                     << ",command:" << command << ",";
-    }*/
-
     const auto result =
         ::SendTo(m_command_sockfd, m_tello_server_command_addr, message);
     const int bytes{result.first};
     if (bytes == -1)
     {
-        /*if (!logFileName.empty()){
-            telloLogFile << "failed" << std::endl;
-        }*/
         spdlog::error(result.second);
         return false;
     }
-    char answer[2048] = {0};
-    while (!answer[0])
+    std::optional<std::string> response = ReceiveResponse();
+    while (!response || !response.has_value())
     {
-        recv(m_command_sockfd, answer, 2048, 0);
+        if (amountOfTries > 0)
+        {
+            amountOfTries -= 1;
+        }
+        else
+        {
+            return false;
+        }
+        response = ReceiveResponse();
+        usleep(200);
     }
-    std::string strAnswer(answer);
+    std::string strAnswer(response.value());
     spdlog::info(strAnswer + ": " +
                  std::string(message.begin(), message.end()));
     spdlog::debug("127.0.0.1:{} >>>> {} bytes >>>> {}:{}: {}",
@@ -418,13 +418,6 @@ bool Tello::SendCommandWithResponse(const std::string& command)
                   TELLO_SERVER_COMMAND_PORT, command);
     bool isSuccess = strAnswer.find("ok") != std::string::npos ||
                      strAnswer.find("OK") != std::string::npos;
-    /*if (!logFileName.empty()){
-        auto end = std::chrono::system_clock::now();
-        std::chrono::duration<double> elapsed_seconds = end - start;
-        telloLogFile << "completed in:" << elapsed_seconds.count()
-                     << ",battery:" << GetBatteryStatus()
-                     << ",success:" << isSuccess << std::endl;
-    }*/
     return isSuccess;
 }
 
@@ -446,6 +439,26 @@ std::optional<std::string> Tello::ReceiveResponse()
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
                   TELLO_SERVER_COMMAND_PORT, response);
     return response;
+}
+int Tello::GetBatteryState(int amountOfTries)
+{
+    std::optional<std::string> response;
+    while (!response.has_value() && amountOfTries-- != 0)
+    {
+        response = GetState();
+        usleep(100);
+    }
+    if (amountOfTries <= 0)
+    {
+        std::cout << "cant get state" << std::endl;
+        return 100;
+    }
+    auto startBatteryPosition = response.value().find("bat:") + 4;
+    auto endBatteryPosition =
+        response.value().substr(startBatteryPosition).find(';');
+    int Battery = std::stoi(
+        response.value().substr(startBatteryPosition, endBatteryPosition));
+    return Battery;
 }
 int Tello::GetHeightState(int amountOfTries)
 {

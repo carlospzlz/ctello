@@ -57,11 +57,12 @@ public:
               int local_server_command_port = LOCAL_SERVER_STATE_PORT);
     int GetBatteryStatus();
     int GetHeightStatus();
-    int GetHeightState(int amountOfTries = 10);
+    int GetHeightState(int amountOfTries = 20);
     std::string GetAccelerationStatus();
     double GetSpeedStatus();
     bool SendCommand(const std::string& command);
-    bool SendCommandWithResponse(const std::string& command);
+    bool SendCommandWithResponse(const std::string& command,
+                                 int amountOfTries = 30000);
     bool EasyLanding();
     std::string GetTelloName();
     std::optional<std::string> ReceiveResponse();
@@ -73,6 +74,7 @@ public:
     Tello& operator=(const Tello&) = delete;
     Tello& operator=(const Tello&&) = delete;*/
     void RcCommand(const std::string& rcCommand);
+    int GetBatteryState(int amountOfTries = 20);
 
 private:
     void FindTello();
