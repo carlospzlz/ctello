@@ -16,15 +16,16 @@
 //
 //  You can contact the author via carlospzlz@gmail.com
 #include <sys/socket.h>
-#include <sys/types.h>
-#include <vector>
-#include <unistd.h>
 #include <sys/stat.h>
-#include <sstream>
-#include <optional>
+#include <sys/types.h>
+#include <unistd.h>
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <optional>
+#include <sstream>
 #include <string>
+#include <vector>
 
 // This is the server running in Tello, where we send commands to and we
 // receive responses from
@@ -52,9 +53,11 @@ class Tello
 public:
     Tello();
     ~Tello();
-    bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,int local_server_command_port = LOCAL_SERVER_STATE_PORT);
+    bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,
+              int local_server_command_port = LOCAL_SERVER_STATE_PORT);
     int GetBatteryStatus();
     int GetHeightStatus();
+    int GetHeightState(int amountOfTries = 10);
     std::string GetAccelerationStatus();
     double GetSpeedStatus();
     bool SendCommand(const std::string& command);
@@ -64,21 +67,26 @@ public:
     std::optional<std::string> ReceiveResponse();
     std::optional<std::string> GetState();
     void createSockets();
-    void closeSockets();
+    void closeSockets() const;
     /*Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
     Tello& operator=(const Tello&) = delete;
     Tello& operator=(const Tello&&) = delete;*/
+    void RcCommand(const std::string& rcCommand);
 
 private:
     void FindTello();
     void ShowTelloInfo();
     /*std::string logFileName= "";
     std::ofstream telloLogFile;*/
-private:
     int m_command_sockfd{0};
     int m_state_sockfd{0};
     int m_local_client_command_port{LOCAL_CLIENT_COMMAND_PORT};
     sockaddr_storage m_tello_server_command_addr{};
+    int timeBetweenRcCommandInMicroSeconds = 1000000;
+    std::chrono::time_point<
+        std::chrono::_V2::system_clock,
+        std::chrono::duration<int64_t, std::ratio<1, 1000000000>>>
+        lastTimeOfRCCommand;
 };
 }  // namespace ctello

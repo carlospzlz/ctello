@@ -18,13 +18,13 @@
 
 #include "ctello.h"
 
-#include <errno.h>
 #include <memory.h>
 #include <netdb.h>
 #include <netinet/in.h>
-#include <stdlib.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <cerrno>
+#include <cstdlib>
 #include "spdlog/spdlog.h"
 
 const char* const LOG_PATTERN = "[%D %T] [ctello] [%^%l%$] %v";
@@ -157,6 +157,7 @@ Tello::Tello()
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
+    lastTimeOfRCCommand = std::chrono::high_resolution_clock::now();
 }
 
 Tello::~Tello()
@@ -170,7 +171,7 @@ Tello::~Tello()
         telloLogFile.close();
     }*/
 }
-void Tello::closeSockets()
+void Tello::closeSockets() const
 {
     close(m_command_sockfd);
     close(m_state_sockfd);
@@ -180,7 +181,22 @@ void Tello::createSockets()
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 }
-bool Tello::Bind(const int local_client_command_port,int local_server_command_port)
+void Tello::RcCommand(const std::string& rcCommand)
+{
+    auto elapsed =
+        lastTimeOfRCCommand - std::chrono::high_resolution_clock::now();
+    long microseconds =
+        std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
+    if (microseconds < timeBetweenRcCommandInMicroSeconds)
+    {
+        std::cout << timeBetweenRcCommandInMicroSeconds - microseconds <<std::endl;
+        usleep(timeBetweenRcCommandInMicroSeconds - microseconds);
+    }
+    SendCommand(rcCommand);
+    lastTimeOfRCCommand = std::chrono::high_resolution_clock::now();
+}
+bool Tello::Bind(const int local_client_command_port,
+                 int local_server_command_port)
 {
     // UDP Client to send commands and receive responses
     auto result =
@@ -276,19 +292,21 @@ double Tello::GetSpeedStatus()
         }
     }
     return 0;
-
 }
-std::string Tello::GetAccelerationStatus(){
+std::string Tello::GetAccelerationStatus()
+{
     std::optional<std::string> response;
     SendCommand("acceleration?");
-    while (!(response = ReceiveResponse()));
+    while (!(response = ReceiveResponse()))
+        ;
     if (response.has_value())
     {
-            return response.value();
+        return response.value();
     }
     return "";
 }
-int Tello::GetHeightStatus(){
+int Tello::GetHeightStatus()
+{
     std::optional<std::string> response;
     SendCommand("height?");
     while (!(response = ReceiveResponse()))
@@ -428,6 +446,26 @@ std::optional<std::string> Tello::ReceiveResponse()
                   m_local_client_command_port, bytes, TELLO_SERVER_IP,
                   TELLO_SERVER_COMMAND_PORT, response);
     return response;
+}
+int Tello::GetHeightState(int amountOfTries)
+{
+    std::optional<std::string> response;
+    while (!response.has_value() && amountOfTries-- != 0)
+    {
+        response = GetState();
+        usleep(100);
+    }
+    if (amountOfTries <= 0)
+    {
+        std::cout << "cant get state" << std::endl;
+        return 0;
+    }
+    auto startHeightPosition = response.value().find("tof:") + 4;
+    auto endHeightPosition =
+        response.value().substr(startHeightPosition).find(';');
+    int height = std::stoi(
+        response.value().substr(startHeightPosition, endHeightPosition));
+    return height;
 }
 std::optional<std::string> Tello::GetState()
 {
