@@ -27,6 +27,15 @@
 #include <string>
 #include <vector>
 
+#include <memory.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#include <cerrno>
+#include <cstdlib>
+#include <thread>
+#include "spdlog/spdlog.h"
 // This is the server running in Tello, where we send commands to and we
 // receive responses from
 const char* const TELLO_SERVER_IP{"192.168.10.1"};
@@ -52,6 +61,7 @@ class Tello
 {
 public:
     Tello();
+    explicit Tello(bool withThreads);
     ~Tello();
     bool Bind(int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,
               int local_server_command_port = LOCAL_SERVER_STATE_PORT);
@@ -63,18 +73,23 @@ public:
     bool SendCommand(const std::string& command);
     bool SendCommandWithResponse(const std::string& command,
                                  int amountOfTries = 30000);
+
+    bool SendCommandWithResponseByThread(const std::string& command,
+                                         int amountOfTries = 30000);
     bool EasyLanding();
     std::string GetTelloName();
     std::optional<std::string> ReceiveResponse();
     std::optional<std::string> GetState();
     void createSockets();
-    void closeSockets() const;
+    void closeSockets();
     /*Tello(const Tello&) = delete;
     Tello(const Tello&&) = delete;
     Tello& operator=(const Tello&) = delete;
     Tello& operator=(const Tello&&) = delete;*/
     void RcCommand(const std::string& rcCommand);
     int GetBatteryState(int amountOfTries = 20);
+    int GetHeight() { return height; };
+    int GetBattery() { return battery; };
 
 private:
     void FindTello();
@@ -85,10 +100,20 @@ private:
     int m_state_sockfd{0};
     int m_local_client_command_port{LOCAL_CLIENT_COMMAND_PORT};
     sockaddr_storage m_tello_server_command_addr{};
+    int height;
+    int battery;
+    std::thread responseReceiver;
+    std::thread stateReceiver;
     int timeBetweenRcCommandInMicroSeconds = 1000000;
     std::chrono::time_point<
         std::chrono::_V2::system_clock,
         std::chrono::duration<int64_t, std::ratio<1, 1000000000>>>
         lastTimeOfRCCommand;
+    std::vector<std::string> responses;
+    void listenToResponses();
+    void listenToState();
+    bool BindWithOutStatus(
+        int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,
+        int local_server_command_port = LOCAL_SERVER_STATE_PORT);
 };
 }  // namespace ctello
