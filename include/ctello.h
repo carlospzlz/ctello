@@ -75,7 +75,7 @@ public:
                                  int amountOfTries = 30000);
 
     bool SendCommandWithResponseByThread(const std::string& command,
-                                         int amountOfTries = 30000);
+                                         int amountOfTries = 500000);
     bool EasyLanding();
     std::string GetTelloName();
     std::optional<std::string> ReceiveResponse();

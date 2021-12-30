@@ -205,13 +205,7 @@ void Tello::listenToResponses()
             if (response && response.has_value())
             {
                 std::string answer(response.value());
-                answer.erase(answer.find_last_not_of(" \n\r\t") + 1);
-                answer.erase(answer.find('\0'));
                 responses.emplace_back(answer);
-            }
-            else
-            {
-                usleep(100);
             }
         }
         catch (...)
@@ -495,7 +489,7 @@ bool Tello::SendCommandWithResponse(const std::string& command,
     return isSuccess;
 }
 bool Tello::SendCommandWithResponseByThread(const std::string& command,
-                                    int amountOfTries)
+                                            int amountOfTries)
 {
     const std::vector<unsigned char> message{command.begin(), command.end()};
     const auto result =
@@ -509,11 +503,6 @@ bool Tello::SendCommandWithResponseByThread(const std::string& command,
     std::string strAnswer;
     do
     {
-        if (responses.empty())
-        {
-            usleep(100);
-            continue;
-        }
         if (amountOfTries > 0)
         {
             amountOfTries -= 1;
@@ -524,7 +513,13 @@ bool Tello::SendCommandWithResponseByThread(const std::string& command,
                          std::string(message.begin(), message.end()));
             return false;
         }
+        if (responses.empty())
+        {
+            usleep(100);
+            continue;
+        }
         strAnswer = responses.back();
+        break;
     } while (strAnswer.empty());
 
     responses.pop_back();
