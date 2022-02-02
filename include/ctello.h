@@ -15,10 +15,27 @@
 //  along with this program.  If not, see <https://www.gnu.org/licenses/>
 //
 //  You can contact the author via carlospzlz@gmail.com
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+
+#include <windows.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
+
+// Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
+#pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Mswsock.lib")
+#pragma comment(lib, "AdvApi32.lib")
+#elif defined(__linux__)
 #include <sys/socket.h>
+#include <unistd.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#endif
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -28,10 +45,6 @@
 #include <vector>
 
 #include <memory.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
-#include <unistd.h>
 #include <cerrno>
 #include <cstdlib>
 #include <thread>
@@ -75,7 +88,7 @@ public:
                                  int amountOfTries = 30000);
 
     bool SendCommandWithResponseByThread(const std::string& command,
-                                         int amountOfTries = 500000);
+                                         int amountOfTries = 50000);
     bool EasyLanding();
     std::string GetTelloName();
     std::optional<std::string> ReceiveResponse();
@@ -86,7 +99,6 @@ public:
     Tello(const Tello&&) = delete;
     Tello& operator=(const Tello&) = delete;
     Tello& operator=(const Tello&&) = delete;*/
-    void RcCommand(const std::string& rcCommand);
     int GetBatteryState(int amountOfTries = 20);
     int GetHeight() { return height; };
     int GetBattery() { return battery; };
@@ -104,16 +116,16 @@ private:
     int battery;
     std::thread responseReceiver;
     std::thread stateReceiver;
-    int timeBetweenRcCommandInMicroSeconds = 1000000;
-    std::chrono::time_point<
-        std::chrono::_V2::system_clock,
-        std::chrono::duration<int64_t, std::ratio<1, 1000000000>>>
-        lastTimeOfRCCommand;
     std::vector<std::string> responses;
     void listenToResponses();
     void listenToState();
     bool BindWithOutStatus(
         int local_client_command_port = LOCAL_CLIENT_COMMAND_PORT,
         int local_server_command_port = LOCAL_SERVER_STATE_PORT);
+#if defined(_WIN32)
+    WSADATA wsa;
+    DWORD optval;
+#endif
+
 };
 }  // namespace ctello

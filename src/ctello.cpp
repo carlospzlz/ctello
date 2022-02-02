@@ -102,7 +102,7 @@ std::pair<int, std::string> SendTo(const int sockfd,
                                    const std::vector<unsigned char>& message)
 {
     const socklen_t addr_len{sizeof(dest_addr)};
-    int result = sendto(sockfd, message.data(), message.size(), 0,
+    int result = sendto(sockfd, (char *)message.data(), message.size(), 0,
                         reinterpret_cast<sockaddr*>(&dest_addr), addr_len);
     std::stringstream ss;
     if (result == -1)
@@ -126,8 +126,13 @@ std::pair<int, std::string> ReceiveFrom(const int sockfd,
     buffer.resize(buffer_size, '\0');
     // MSG_DONTWAIT -> Non-blocking
     // recvfrom is storing (re-populating) the sender address in addr.
+#if defined(_WIN32)
+    int result = recvfrom(sockfd,(char *)buffer.data(), buffer_size, 0,
+                          reinterpret_cast<sockaddr*>(&addr), &addr_len);
+#elif defined(__linux__)
     int result = recvfrom(sockfd, buffer.data(), buffer_size, flags,
                           reinterpret_cast<sockaddr*>(&addr), &addr_len);
+#endif
     if (result == -1)
     {
         std::stringstream ss;
@@ -144,19 +149,31 @@ namespace ctello
 {
 Tello::Tello()
 {
+#if defined(_WIN32)
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        printf("Failed. Error Code : %d", WSAGetLastError());
+        exit(1);
+    }
+#endif
     createSockets();
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
-    lastTimeOfRCCommand = std::chrono::high_resolution_clock::now();
 }
 Tello::Tello(bool withThreads)
 {
+#if defined(_WIN32)
+    if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0)
+    {
+        printf("Failed. Error Code : %d", WSAGetLastError());
+        exit(1);
+    }
+#endif
     createSockets();
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
-    lastTimeOfRCCommand = std::chrono::high_resolution_clock::now();
     responses = std::vector<std::string>{};
     BindWithOutStatus();
     responseReceiver = std::thread(&Tello::listenToResponses, this);
@@ -238,21 +255,11 @@ void Tello::createSockets()
 {
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-}
-void Tello::RcCommand(const std::string& rcCommand)
-{
-    auto elapsed =
-        lastTimeOfRCCommand - std::chrono::high_resolution_clock::now();
-    long microseconds =
-        std::chrono::duration_cast<std::chrono::microseconds>(elapsed).count();
-    if (microseconds < timeBetweenRcCommandInMicroSeconds)
-    {
-        std::cout << timeBetweenRcCommandInMicroSeconds - microseconds
-                  << std::endl;
-        usleep(timeBetweenRcCommandInMicroSeconds - microseconds);
-    }
-    SendCommand(rcCommand);
-    lastTimeOfRCCommand = std::chrono::high_resolution_clock::now();
+#if defined(_WIN32)
+
+    optval = 1;
+    ioctlsocket(m_command_sockfd, FIONBIO, &optval);
+#endif
 }
 bool Tello::BindWithOutStatus(const int local_client_command_port,
                               int local_server_command_port)
@@ -339,7 +346,7 @@ std::string Tello::GetTelloName()
 }
 bool Tello::EasyLanding()
 {
-    while (!SendCommandWithResponse("down 20"))
+    while (!SendCommandWithResponseByThread("down 20"))
         ;
     SendCommand("land");
 }
