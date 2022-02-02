@@ -102,7 +102,7 @@ std::pair<int, std::string> SendTo(const int sockfd,
                                    const std::vector<unsigned char>& message)
 {
     const socklen_t addr_len{sizeof(dest_addr)};
-    int result = sendto(sockfd, (char *)message.data(), message.size(), 0,
+    int result = sendto(sockfd, (char*)message.data(), message.size(), 0,
                         reinterpret_cast<sockaddr*>(&dest_addr), addr_len);
     std::stringstream ss;
     if (result == -1)
@@ -116,18 +116,25 @@ std::pair<int, std::string> SendTo(const int sockfd,
 
 // Receives a text response from the given destination address.
 // Returns the number of received bytes and, if -1, the error message.
+#if defined(__linux__)
 std::pair<int, std::string> ReceiveFrom(const int sockfd,
                                         sockaddr_storage& addr,
                                         std::vector<unsigned char>& buffer,
                                         const int buffer_size = 1024,
                                         const int flags = MSG_DONTWAIT)
+#elif defined(_WIN32)
+std::pair<int, std::string> ReceiveFrom(const int sockfd,
+                                        sockaddr_storage& addr,
+                                        std::vector<unsigned char>& buffer,
+                                        const int buffer_size = 1024)
+#endif
 {
     socklen_t addr_len{sizeof(addr)};
     buffer.resize(buffer_size, '\0');
     // MSG_DONTWAIT -> Non-blocking
     // recvfrom is storing (re-populating) the sender address in addr.
 #if defined(_WIN32)
-    int result = recvfrom(sockfd,(char *)buffer.data(), buffer_size, 0,
+    int result = recvfrom(sockfd, (char*)buffer.data(), buffer_size, 0,
                           reinterpret_cast<sockaddr*>(&addr), &addr_len);
 #elif defined(__linux__)
     int result = recvfrom(sockfd, buffer.data(), buffer_size, flags,
@@ -203,7 +210,7 @@ void Tello::listenToState()
                     stringFromHeight.substr(startBatteryPosition).find(';');
                 battery = std::stoi(stringFromHeight.substr(
                     startBatteryPosition, endBatteryPosition));
-                sleep(1);
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
         catch (...)
@@ -244,8 +251,13 @@ Tello::~Tello()
 }
 void Tello::closeSockets()
 {
+#if defined(_WIN32)
+    closesocket(m_command_sockfd);
+    closesocket(m_state_sockfd);
+#elif defined(__linux__)
     close(m_command_sockfd);
     close(m_state_sockfd);
+#endif
     m_command_sockfd = 0;
     m_state_sockfd = 0;
     responseReceiver.join();
@@ -333,7 +345,7 @@ void Tello::FindTello()
     do
     {
         SendCommand("command");
-        sleep(1);
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     } while (!(ReceiveResponse()));
 }
 std::string Tello::GetTelloName()
@@ -346,9 +358,9 @@ std::string Tello::GetTelloName()
 }
 bool Tello::EasyLanding()
 {
-    while (!SendCommandWithResponseByThread("down 20"))
-        ;
-    SendCommand("land");
+    while (!SendCommandWithResponseByThread("down 20"));
+    return SendCommandWithResponse("land");
+
 }
 double Tello::GetSpeedStatus()
 {
@@ -483,7 +495,7 @@ bool Tello::SendCommandWithResponse(const std::string& command,
             return false;
         }
         response = ReceiveResponse();
-        usleep(200);
+        std::this_thread::sleep_for(std::chrono::microseconds(200));
     }
     std::string strAnswer(response.value());
     spdlog::info(strAnswer + ": " +
@@ -522,7 +534,7 @@ bool Tello::SendCommandWithResponseByThread(const std::string& command,
         }
         if (responses.empty())
         {
-            usleep(100);
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
             continue;
         }
         strAnswer = responses.back();
@@ -550,7 +562,7 @@ std::optional<std::string> Tello::ReceiveResponse()
     {
         return {};
     }
-    std::string response{buffer.begin(), buffer.end() + bytes};
+    std::string response{buffer.begin(), buffer.end()};
     // Some responses contain trailing white spaces.
     response.erase(response.find_last_not_of(" \n\r\t") + 1);
     spdlog::debug("127.0.0.1:{} <<<< {} bytes <<<< {}:{}: {}",
@@ -564,7 +576,7 @@ int Tello::GetBatteryState(int amountOfTries)
     while (!response.has_value() && amountOfTries-- != 0)
     {
         response = GetState();
-        usleep(100);
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
     if (amountOfTries <= 0)
     {
@@ -584,7 +596,7 @@ int Tello::GetHeightState(int amountOfTries)
     while (!response.has_value() && amountOfTries-- != 0)
     {
         response = GetState();
-        usleep(100);
+        std::this_thread::sleep_for(std::chrono::microseconds(100));
     }
     if (amountOfTries <= 0)
     {
