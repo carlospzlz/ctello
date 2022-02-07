@@ -167,6 +167,7 @@ Tello::Tello()
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
     spdlog::set_level(log_level);
+    byThread = false;
 }
 Tello::Tello(bool withThreads)
 {
@@ -177,6 +178,7 @@ Tello::Tello(bool withThreads)
         exit(1);
     }
 #endif
+    byThread = withThreads;
     createSockets();
     spdlog::set_pattern(LOG_PATTERN);
     auto log_level = ::GetLogLevelFromEnv("SPDLOG_LEVEL");
@@ -260,13 +262,17 @@ void Tello::closeSockets()
 #endif
     m_command_sockfd = 0;
     m_state_sockfd = 0;
-    responseReceiver.join();
-    stateReceiver.join();
+    if (byThread){
+        responseReceiver.join();
+        stateReceiver.join();
+    }
 }
 void Tello::createSockets()
 {
     m_command_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     m_state_sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+    setsockopt(m_command_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
+    setsockopt(m_state_sockfd, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(int));
 #if defined(_WIN32)
 
     optval = 1;

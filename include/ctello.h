@@ -80,7 +80,7 @@ public:
               int local_server_command_port = LOCAL_SERVER_STATE_PORT);
     int GetBatteryStatus();
     int GetHeightStatus();
-    int GetHeightState(int amountOfTries = 20);
+    int GetHeightState(int amountOfTries = 10000);
     std::string GetAccelerationStatus();
     double GetSpeedStatus();
     bool SendCommand(const std::string& command);
@@ -114,6 +114,8 @@ private:
     sockaddr_storage m_tello_server_command_addr{};
     int height;
     int battery;
+    int reuse = 1;
+    bool byThread;
     std::thread responseReceiver;
     std::thread stateReceiver;
     std::vector<std::string> responses;
