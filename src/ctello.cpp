@@ -53,7 +53,7 @@ spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
     };
     // clang-format on
     const char* const name_c_str = std::getenv(var_name.c_str());
-    if (name_c_str == nullptr)
+    if (!name_c_str)
     {
         // Info is the default
         return spdlog::level::info;
@@ -97,7 +97,7 @@ std::pair<bool, std::string> FindSocketAddr(const char* const ip,
     hints.ai_socktype = SOCK_DGRAM;
     int result = getaddrinfo(ip, port, &hints, &result_list);
 
-    if (result != 0)
+    if (result)
     {
         std::stringstream ss;
         ss << "getaddrinfo: " << result;
