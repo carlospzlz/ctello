@@ -137,7 +137,7 @@ private:
 
     void ProcessAxisEvent(const uint8_t number, const int16_t value)
     {
-        if (value == 0)
+        if (!value)
         {
             m_move_cmd.clear();
             return;
