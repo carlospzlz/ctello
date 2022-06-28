@@ -16,6 +16,8 @@
 //
 //  You can contact the author via carlospzlz@gmail.com
 
+#pragma once
+
 #include <sys/socket.h>
 #include <sys/types.h>
 
