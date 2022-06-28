@@ -37,7 +37,7 @@ const char* const TELLO_SERVER_COMMAND_PORT{"8889"};
 // program to deliver datagrams to for a particular port.
 //
 // NOTE 2: Tello will respond to any port, but it keeps that port number
-// rememebered while it's powered up. So you can't have more than one client
+// remembered while it's powered up. So you can't have more than one client
 // receiving responses from the Tello.
 const int LOCAL_CLIENT_COMMAND_PORT{9000};
 

@@ -63,7 +63,7 @@ spdlog::level::level_enum GetLogLevelFromEnv(const std::string& var_name)
 }
 
 // Binds the given socket file descriptor ot the given port.
-// Returns whether it suceeds or not and the error message.
+// Returns whether it succeeds or not and the error message.
 std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
 {
     sockaddr_in listen_addr{};
@@ -86,7 +86,7 @@ std::pair<bool, std::string> BindSocketToPort(const int sockfd, const int port)
 }
 
 // Finds the socket address given an ip and a port.
-// Returns whether it suceeds or not and the error message.
+// Returns whether it succeeds or not and the error message.
 std::pair<bool, std::string> FindSocketAddr(const char* const ip,
                                             const char* const port,
                                             sockaddr_storage* const addr)
