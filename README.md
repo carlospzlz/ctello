@@ -15,13 +15,13 @@ See the [Tello SDK 2.0 User Guide](https://dl-cdn.ryzerobotics.com/downloads/Tel
 ## Dependencies
 This project was developed and tested with the versions listed below.
 
-| Name        | Version                |
-|-------------|:----------------------:|
-|C++          | 17                     |
-|C++ compiler | GCC 9.3.0, Clang 9.0.1 |
-|CMake        | 3.17                   |
-|spdlog       | 1.5.0-1                |
-|OpenCV       | 4.2.0-2                |
+| Name         |        Version         |
+|--------------|:----------------------:|
+| C++          |           17           |
+| C++ compiler | GCC 9.3.0, Clang 9.0.1 |
+| CMake        |          3.17          |
+| spdlog       |        1.5.0-1         |
+| OpenCV       |        4.2.0-2         |
 
 ## Build & install
 
